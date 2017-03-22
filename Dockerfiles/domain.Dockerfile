@@ -21,6 +21,8 @@ FROM redhawk/runtime
 MAINTAINER Thomas Goodwin <btgoodwin@geontech>
 LABEL version="2.0.5" description="REDHAWK Domain"
 
+RUN yum install -y redhawk-basic-components
+
 ENV DOMAINNAME ""
 
 CMD [\

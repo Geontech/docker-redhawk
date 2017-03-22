@@ -23,13 +23,14 @@ runtime := redhawk/runtime
 redhawk_images := \
 	redhawk/development \
 	redhawk/domain \
-	redhawk/gpp \
-	redhawk/usrp \
-	redhawk/rtl2832u \
-	redhawk/webserver
+	redhawk/gpp
+	# redhawk/gpp \
+	# redhawk/usrp \
+	# redhawk/rtl2832u \
+	# redhawk/webserver
 all_images := $(repo) $(omni) $(runtime) $(redhawk_images)
 
-all_scripts := omniserver.sh domain.sh sdrroot.sh
+linked_scripts := omniserver domain sdrroot login
 
 # Macros for querying an image vs. building one.
 image_check = docker images -q $1
@@ -40,7 +41,7 @@ image_build = $(if $(strip $(shell $(call image_check, $1))),, \
 		./Dockerfiles \
 	)
 
-.PHONY: all clean $(all_images)
+.PHONY: all clean images $(all_images) scripts
 
 # Image building targets
 $(repo):
@@ -52,23 +53,34 @@ $(omni) $(runtime): $(repo)
 $(redhawk_images): $(runtime)
 	$(call image_build,$@)
 
-# Launcher script targets
-$(all_scripts):
-	@ln -s scripts/$@ ./$@
+# Launcher/helper script targets
+$(linked_scripts):
+	@ln -s scripts/$@.sh ./$@
+	@chmod a+x ./$@
 
-# Do all
-all: $(redhawk_images) $(all_scripts)
+# Groups, all
+images: $(redhawk_images)
+scripts: $(linked_scripts)
+all: images scripts
 
-# Remove containers for the image, then remove the image
-cleaner := $(foreach img,$1,\
-	$(shell docker ps -a | grep $(img) | awk '{print $$1}' | xargs docker rm && \
-			docker rmi $(img)\
-		) \
-	)
-
+# Cleaner
 clean:
-	$(call cleaner,$(redhawk_images))
-	$(call cleaner,$(runtime))
-	$(call cleaner,$(omni))
-	$(call cleaner,$(repo))
-	rm -f $(all_scripts)
+	@echo Removing script links
+	@rm -f $(linked_scripts)
+	reversed=$(redhawk_images) $(runtime) $(omni) $(repo)
+	$(foreach image,$(reversed),\
+		$(if $(strip $(shell $(call image_check, $(image)))),\
+			$(shell echo Stopping and removing any containers for $(image)) ; \
+			$(foreach container,$(shell docker -qa --filter="ancestor=$(image)"), \
+				$(shell echo ->    Stopping: $(container)) ; \
+				$(shell docker stop $(container)) ; \
+				$(shell echo ->    Removing: $(container)) ; \
+				$(shell docker rm $(container)) ; \
+				) ; \
+			$(shell echo Removing image: $(image)) ; \
+			$(shell docker rmi $(image)) ; \
+			,) \
+		)
+	@echo **** DO ANY OF THESE LOOK FAMILIAR? ****
+	$(shell docker volume ls -q)
+	@echo You will need to remove them manually \(docker volume rm VOLUME\)

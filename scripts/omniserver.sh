@@ -4,9 +4,17 @@
 #  1) 'start' or 'stop'
 #  2) 'bridge' or 'host' (bridge is default)
 #
+
 if [ -z ${1+x} ]; then
 	echo You must supply a command, start or stop
 	exit 1;
+else
+	if [[ $1 == "-h" ]] || [[ $1 == "--help" ]]; then
+		echo Help: $0 start\|stop \[bridge\|host\]
+		echo - \[\] arguments are optional
+		echo - \"bridge\" is the default networking type
+		exit 0
+	fi
 fi
 COMMAND=$1
 NETWORK=${2:-bridge}
@@ -26,7 +34,7 @@ DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 $DIR/image-exists.sh ${IMAGE_NAME}
 if [ $? -gt 0 ]; then
 	echo ${IMAGE_NAME} was not built yet, building now
-	$DIR/../make ${IMAGE_NAME} || { \
+	make -C $DIR/.. ${IMAGE_NAME} || { \
 		echo Failed to build ${IMAGE_NAME}; exit 1;
 	}
 fi

@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 #
+# "logs into" a named container as the user (default root)
+# ./login REDHAWK_DEV redhawk
 
 # Detect the script's location
 SOURCE="${BASH_SOURCE[0]}"
@@ -27,10 +29,35 @@ while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symli
 done
 DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
-# Check for the named volume, create the command if necessary
-$DIR/volume-exists.sh $1
-if [ $? -eq 0 ]; then
-	CMD="-v $1:/var/redhawk/sdr"
+# Param check, help, etc.
+if [ -z ${1+x} ]; then
+	echo You must supply a container name
+	exit 1;
+else
+	if [[ $1 == "-h" ]] || [[ $1 == "--help" ]]; then
+		echo Help: $0 CONTAINER_NAME \[USER_NAME\]
+		echo - \[\] arguments are optional
+		echo - USER_NAME is the username to login with \(default root\)
+		exit 0
+	fi
 fi
 
-echo $CMD
+CONTAINER_NAME=$1
+USER_NAME=${2:-root}
+
+# Check for the container
+$DIR/container-running.sh ${CONTAINER_NAME}
+case $? in
+2)
+	echo ${CONTAINER_NAME} does not exist
+	exit 1
+	;;
+1)
+	echo ${CONTAINER_NAME} is not running
+	exit 0
+	;;
+*)
+	echo Joining... Type \"exit\" when finished.
+	docker exec -u ${USER_NAME} -it ${CONTAINER_NAME} bash
+	;;
+esac
