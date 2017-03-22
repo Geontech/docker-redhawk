@@ -1,3 +1,4 @@
+#!/bin/bash
 # This file is protected by Copyright. Please refer to the COPYRIGHT file
 # distributed with this source distribution.
 #
@@ -16,19 +17,10 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 #
+set -e
 
-FROM redhawk/runtime
-MAINTAINER Thomas Goodwin <btgoodwin@geontech>
-LABEL version="2.0.5" description="REDHAWK GPP"
-
-ENV DOMAINNAME ""
-ENV NODENAME   ""
-ENV GPPNAME    ""
-
-ADD files/gpp-node-init.sh /root/gpp-node-init.sh
-RUN echo "/root/gpp-node-init.sh" | tee -a /root/.bashrc
-
-CMD [\
-	"/bin/bash", "-l", "-c", \
-	"nodeBooter -d /nodes/${NODENAME}/DeviceManager.dcd.xml" \
-	]
+echo Configuring GPP Node
+${SDRROOT}/dev/devices/GPP/cpp/gpp_setup \
+	--domainname=${DOMAINNAME} \
+	--nodename=${NODENAME} \
+	--gppname=${GPPNAME}

@@ -30,7 +30,7 @@ redhawk_images := \
 	# redhawk/webserver
 all_images := $(repo) $(omni) $(runtime) $(redhawk_images)
 
-linked_scripts := omniserver domain sdrroot login
+linked_scripts := omniserver domain sdrroot login gpp
 
 # Macros for querying an image vs. building one.
 image_check = docker images -q $1
