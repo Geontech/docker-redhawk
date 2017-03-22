@@ -8,10 +8,27 @@
 #   The third and fourth arguments are optional on start.  
 #   If SDRROOT_VOLUME is not desired, but OMNISERVER is, set it to DEFAULT.
 #   If OMNISERVER is not provided, the omniserver container MUST be running.
+IMAGE_NAME=redhawk/domain
+
+# Detect the script's location
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+  DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+done
+DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+# Prints the status for all containers inheriting from redhawk/domain
+function print_status {
+	docker ps -a \
+		--filter="ancestor=${IMAGE_NAME}"\
+		--format="table {{.Names}}\t{{.Mounts}}\t{{.Networks}}\t{{.Status}}"
+}
 
 if [ -z ${1+x} ]; then
-	echo You must provide a command, start or stop
-	exit 1
+	print_status
+	exit 0
 else
 	if [[ $1 == "-h" ]] || [[ $1 == "--help" ]]; then
 		echo Help: 
@@ -33,16 +50,6 @@ CONTAINER_NAME=$2
 SDRROOT_VOLUME=${3:-DEFAULT}
 OMNISERVER=${4:-DEFAULT}
 OMNISERVER_NAME=omniserver
-IMAGE_NAME=redhawk/domain
-
-# Detect the script's location
-SOURCE="${BASH_SOURCE[0]}"
-while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
-  DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
-  SOURCE="$(readlink "$SOURCE")"
-  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
-done
-DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
 # Get volume command
 SDRROOT_CMD="$($DIR/sdrroot-cmd.sh $SDRROOT_VOLUME)"
