@@ -19,22 +19,15 @@
 
 FROM redhawk/runtime
 MAINTAINER Thomas Goodwin <btgoodwin@geontech>
-LABEL version="2.0.5" description="REDHAWK RTL2832U -based Node"
+LABEL version="2.0.5" description="REDHAWK GPP"
 
-ENV DOMAINNAME  ""
-ENV RTL_NAME    ""
-ENV RTL_VENDOR  ""
-ENV RTL_PRODUCT ""
-ENV RTL_SERIAL  ""
-ENV RTL_INDEX   ""
-ENV NODENAME    ""
+# TODO: Yum-install/pip-install tornado, etc. for rest-python
 
-ENTRYPOINT [\
-	"/bin/bash", "-l", "-c", \
-	"${SDRROOT}/dev/devices/rh/RTL2832U/nodeconfig.py --domainname=${DOMAINNAME} --nodename=${NODENAME} --noinplace --rtlname=${RTL_NAME} --rtlvendor=${RTL_VENDOR} --rtlproduct=${RTL_PRODUCT} --rtlserial=${RTL_SERIAL} --rtlindex=${RTL_INDEX}" \
-	]
+WORKDIR /opt
+# TODO: Clone in rest-python AR/AR2/AR2Kit?
 
-CMD [\
-	"/bin/bash", "-l", "-c", \
-	"nodeBooter -d /nodes/${NODENAME}/DeviceManager.dcd.xml" \
-	]
+# Mount point for end-user apps
+VOLUME /opt/rest-python/apps
+
+WORKDIR /opt/rest-python
+CMD [ "/bin/bash", "-l", "-c", "pyrest.py" ]

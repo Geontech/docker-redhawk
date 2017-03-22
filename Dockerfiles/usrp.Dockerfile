@@ -64,16 +64,10 @@ ENV NODENAME        ""
 
 ENTRYPOINT [\
 	"/bin/bash", "-l", "-c", \
-	"${SDRROOT}/dev/devices/rh/USRP_UHD/nodeconfig.py" \
-		"--domainname=${DOMAINNAME}" \
-		"--nodename=${NODENAME}" \
-		"--noinplace" \
-		"--usrpproduct=${USRP_IP_ADDRESS}" \
-		"--usrpname=${USRP_NAME}" \
-		"--usrpserial=${USRP_SERIAL}" \
+	"${SDRROOT}/dev/devices/rh/USRP_UHD/nodeconfig.py --domainname=${DOMAINNAME} --nodename=${NODENAME} --noinplace --usrpproduct=${USRP_IP_ADDRESS} --usrpname=${USRP_NAME} --usrpserial=${USRP_SERIAL}" \
 	]
 
 CMD [\
 	"/bin/bash", "-l", "-c", \
-	"nodeBooter", "-d", "/nodes/${NODENAME}/DeviceManager.dcd.xml" \
+	"nodeBooter -d /nodes/${NODENAME}/DeviceManager.dcd.xml" \
 	]
