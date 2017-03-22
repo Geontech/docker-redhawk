@@ -4,20 +4,6 @@
 #  1) 'start' or 'stop'
 #  2) 'bridge' or 'host' (bridge is default)
 #
-
-if [ -z ${1+x} ]; then
-	echo You must supply a command, start or stop
-	exit 1;
-else
-	if [[ $1 == "-h" ]] || [[ $1 == "--help" ]]; then
-		echo Help: $0 start\|stop \[bridge\|host\]
-		echo - \[\] arguments are optional
-		echo - \"bridge\" is the default networking type
-		exit 0
-	fi
-fi
-COMMAND=$1
-NETWORK=${2:-bridge}
 CONTAINER_NAME=omniserver
 IMAGE_NAME=redhawk/${CONTAINER_NAME}
 
@@ -29,6 +15,38 @@ while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symli
   [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
 done
 DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+function print_status {
+	$DIR/container-running.sh ${CONTAINER_NAME}
+	case $? in
+	2)
+		echo omniserver does not exist.
+		;;
+	1)
+		echo omniserver is not running.
+		;;
+	*)
+		IP=$($DIR/omniserver-ip.sh)
+		echo omniserver IP address: ${IP}
+		;;
+	esac
+}
+
+# Parameter checks
+if [ -z ${1+x} ]; then
+	print_status
+	exit 0;
+else
+	if [[ $1 == "-h" ]] || [[ $1 == "--help" ]]; then
+		echo Help: $0 start\|stop \[bridge\|host\]
+		echo - \[\] arguments are optional
+		echo - \"bridge\" is the default networking type
+		exit 0
+	fi
+fi
+COMMAND=$1
+NETWORK=${2:-bridge}
+
 
 # Check if the image is installed yet, if not, build it.
 $DIR/image-exists.sh ${IMAGE_NAME}
@@ -72,6 +90,7 @@ if [[ $COMMAND == "start" ]]; then
 			exit 1
 		else
 			echo Started ${CONTAINER_NAME}
+			print_status
 			exit 0
 		fi
 	fi
