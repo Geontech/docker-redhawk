@@ -1,4 +1,21 @@
 #!/bin/bash
+# This file is protected by Copyright. Please refer to the COPYRIGHT file
+# distributed with this source distribution.
+#
+# This file is part of Docker REDHAWK.
+#
+# Docker REDHAWK is free software: you can redistribute it and/or modify it under
+# the terms of the GNU Lesser General Public License as published by the Free
+# Software Foundation, either version 3 of the License, or (at your option) any
+# later version.
+#
+# Docker REDHAWK is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
+# details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with this program.  If not, see http://www.gnu.org/licenses/.
 #
 
 IMAGE_NAME=redhawk/gpp
@@ -179,30 +196,5 @@ if [[ $COMMAND == "start" ]]; then
 			;;
 	esac
 elif [[ $COMMAND == "stop" ]]; then
-	$DIR/container-running.sh ${CONTAINER_NAME}
-	case $? in
-	2)
-		echo ${CONTAINER_NAME} does not exist
-		exit 1
-		;;
-	1)
-		echo ${CONTAINER_NAME} is already stopped
-		exit 0
-		;;
-	*)
-		echo Stopping ${CONTAINER_NAME} ...
-		docker stop --time 5 ${CONTAINER_NAME} &> /dev/null
-
-		# Verify it stopped
-		sleep 6
-		$DIR/container-running.sh ${CONTAINER_NAME}
-		if [ $? -eq 0 ]; then
-			echo Failed to stop ${CONTAINER_NAME}
-			exit 1
-		else
-			echo Stopped ${CONTAINER_NAME}
-			exit 0
-		fi
-		;;
-	esac
+	$DIR/stop-container.sh ${CONTAINER_NAME}
 fi
