@@ -20,7 +20,7 @@ The remaining images are derived and come with helper scripts for deploying your
 
  > **Note:** The `rtl2832u`, `usrp`, and `webserver` images are disabled at this time as they are not complete.
 
- The following scripts will also be linked into the main directory:
+ The following scripts will also be linked into the main directory.  Each script supports `-h` and `--help` to learn the usage of the script.
 
  * `login`: Starts a bash shell as a specified user (optional).
  * `omniserver`: Starts and stops a local OmniORB service either in bridged or networked mode.
@@ -39,9 +39,9 @@ The main elements one needs for a REDHAWK system are the naming and event servic
 
 At this point you will have a functioning REDHAWK Domain and GPP pointed at a host-exposed OmniORB server.  Other non-Docker REDHAWK instances can now join this Domain as well as long as your host system's firewall settings expose ports 2809 and 11169.
 
-    ./gpp start GPP1 REDHAWK_DEV1
+    ./gpp start -g GPP1 REDHAWK_DEV1
 
-A GPP container has launched and joined REDHAWK_DEV1.  You can now launch waveforms.
+A GPP container launches and joins REDHAWK_DEV1 as the node DevMgr_GPP1.  You can now launch waveforms.
 
 If you would like to join the Domain container, use `login`:
 

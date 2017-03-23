@@ -33,7 +33,7 @@ Usage: $0 start|stop
 
 Examples:
 	Start or stop a node:
-		$0 start|stop --node MyGPP --domain REDHAWK_TEST2
+		$0 start|stop --node DevMgr_MyGPP --domain REDHAWK_TEST2
 
 	Status of all locally-running ${IMAGE_NAME} instances:
 		$0
@@ -142,16 +142,17 @@ if [[ $COMMAND == "start" ]]; then
 			# Compare Omni server IPs
 			LOCAL_OMNI="$($DIR/omniserver-ip.sh)"
 			if [[ ${OMNISERVER} == ${LOCAL_OMNI} ]]; then
+				OMNISERVER_NAME=omniserver
 				# Get the omniserver IP and run linked to the server.
 				echo Connecting to local omniserver: $OMNISERVER
-				docker run --rm -it \
+				docker run --rm -d \
 				    -e GPPNAME=${GPP_NAME} \
 				    -e NODENAME=${NODE_NAME} \
 				    -e DOMAINNAME=${DOMAIN_NAME} \
 				    -e OMNISERVICEIP=${OMNISERVER} \
 					--link ${OMNISERVER_NAME} \
 					--name ${CONTAINER_NAME} \
-					${IMAGE_NAME} /bin/bash -l # &> /dev/null
+					${IMAGE_NAME} &> /dev/null
 			else
 				# IP is provided, start domain with service IP
 				echo Connecting to remote omniserver: $OMNISERVER
