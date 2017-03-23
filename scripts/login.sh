@@ -17,8 +17,6 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 #
-# "logs into" a named container as the user (default root)
-# ./login REDHAWK_DEV redhawk
 
 # Detect the script's location
 SOURCE="${BASH_SOURCE[0]}"
