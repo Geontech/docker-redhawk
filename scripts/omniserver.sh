@@ -1,9 +1,23 @@
 #!/bin/bash
+# This file is protected by Copyright. Please refer to the COPYRIGHT file
+# distributed with this source distribution.
 #
-# Script expects arguments:
-#  1) 'start' or 'stop'
-#  2) 'bridge' or 'host' (bridge is default)
+# This file is part of Docker REDHAWK.
 #
+# Docker REDHAWK is free software: you can redistribute it and/or modify it under
+# the terms of the GNU Lesser General Public License as published by the Free
+# Software Foundation, either version 3 of the License, or (at your option) any
+# later version.
+#
+# Docker REDHAWK is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
+# details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with this program.  If not, see http://www.gnu.org/licenses/.
+#
+
 CONTAINER_NAME=omniserver
 IMAGE_NAME=redhawk/${CONTAINER_NAME}
 
@@ -16,7 +30,24 @@ while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symli
 done
 DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
-function print_status {
+function usage () {
+	cat <<EOF
+
+Usage: $0 start|stop [NETWORK_TYPE]
+	start|stop       Start or stop the omniserver
+	[NETWORK_TYPE]   Network type, bridge (default) or host
+
+Examples:
+	Status of omniserver:
+		$0
+
+	Start the omniserver exposed to the host network
+		$0 start host
+
+EOF
+}
+
+function print_status () {
 	$DIR/container-running.sh ${CONTAINER_NAME}
 	case $? in
 	2)
@@ -36,16 +67,37 @@ function print_status {
 if [ -z ${1+x} ]; then
 	print_status
 	exit 0;
-else
-	if [[ $1 == "-h" ]] || [[ $1 == "--help" ]]; then
-		echo Help: $0 start\|stop \[bridge\|host\]
-		echo - \[\] arguments are optional
-		echo - \"bridge\" is the default networking type
-		exit 0
-	fi
 fi
-COMMAND=$1
-NETWORK=${2:-bridge}
+
+# Parse arguments
+while [[ $# -gt 0 ]]; do
+	key="$1"
+	case $key in
+		start|stop)
+			COMMAND="$1"
+			;;
+		host|bridge)
+			NETWORK="$1"
+			;;
+		-h|--help)
+			usage
+			exit 0
+			;;
+		*)
+			echo ERROR: Undefined option: $1 $2
+			exit 1
+			;;
+	esac
+	shift # past argument
+done
+
+# Enforce required and defaults
+if [ -z ${COMMAND+x} ]; then
+	usage
+	echo ERROR: No command specified \(start or stop\)
+	exit 1
+fi
+NETWORK=${NETWORK:-bridge}
 
 
 # Check if the image is installed yet, if not, build it.
@@ -95,26 +147,7 @@ if [[ $COMMAND == "start" ]]; then
 		fi
 	fi
 elif [[ $COMMAND == "stop" ]]; then
-	$DIR/container-running.sh ${CONTAINER_NAME}
-	if [ $? -eq 0 ]; then
-		# Is running...
-		echo Stopping ${CONTAINER_NAME}...
-		docker stop --time 5 ${CONTAINER_NAME} &> /dev/null
-
-		# Verify it stopped
-		sleep 6
-		$DIR/container-running.sh ${CONTAINER_NAME}
-		if [ $? -eq 0 ]; then
-			echo Failed to stop ${CONTAINER_NAME}
-			exit 1
-		else
-			echo Stopped ${CONTAINER_NAME}
-			exit 0
-		fi
-	else
-		echo ${CONTAINER_NAME} is already stopped
-		exit 0
-	fi
+	$DIR/stop-container.sh ${CONTAINER_NAME}
 else
 	echo Unknown command $COMMAND
 	exit 1
