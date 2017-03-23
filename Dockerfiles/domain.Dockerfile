@@ -21,9 +21,33 @@ FROM redhawk/runtime
 MAINTAINER Thomas Goodwin <btgoodwin@geontech>
 LABEL version="2.0.5" description="REDHAWK Domain"
 
-RUN yum install -y redhawk-basic-components
+RUN yum install -y \
+	redhawk-basic-components
+	# rh.agc \
+	# rh.AmFmPmBasebandDemod \
+	# rh.autocorrelate \
+	# rh.blueFileLib \
+	# rh.DataConverter \
+	# rh.dsp \
+	# rh.fastfilter \
+	# rh.fcalc \
+	# rh.fftlib \
+	# rh.FileReader \
+	# rh.FileWriter \
+	# rh.HardLimit \
+	# rh.psd \
+	# rh.psk_soft \
+	# rh.RBDSDecoder \
+	# rh.SigGen \
+	# rh.SinkDDS \
+	# rh.sinksocket \
+	# rh.SourceSDDS \
+	# rh.sourcesocket \
+	# rh.TuneFilterDecimate
 
 ENV DOMAINNAME ""
+
+VOLUME /var/redhawk/sdr
 
 CMD [\
 	"/bin/bash", "-l", "-c", \

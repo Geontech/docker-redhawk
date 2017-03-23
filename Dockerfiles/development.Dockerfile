@@ -23,9 +23,15 @@ LABEL version="2.0.5" description="CentOS 7 with REDHAWK Development Environment
 
 # Install development environment
 RUN yum update -y && \
-	yum groupinstall "REDHAWK Development"
+	yum groupinstall -y "REDHAWK Development" && \
+	mkdir -p /home/redhawk/workspace && \
+	chown -R redhawk:redhawk /home/redhawk
+
+USER redhawk
+WORKDIR /home/redhawk/workspace
+
+VOLUME /var/redhawk/sdr
+VOLUME /home/redhawk/workspace
 
 # Default, run the REDHAWK IDE (rhide)
 CMD ["/bin/bash", "-l", "-c", "rhide"]
-
-
