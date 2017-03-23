@@ -48,7 +48,7 @@ Usage: $0 start|stop
 	[-d|--domain  DOMAIN_NAME] Domain Name, default is REDHAWK_DEV
 	[-s|--sdrroot NODE_NAME]   Node Name, Defaults to DevMgr_GPP_NAME
 	[-o|--omni    OMNISERVER]  IP to the OmniServer (detected: ${OMNISERVER})
-	[-p|--print]              Just print resolved settings
+	[-p|--print]               Just print resolved settings
 
 Examples:
 	Start or stop a node:
