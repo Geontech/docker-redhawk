@@ -1,13 +1,23 @@
 #!/bin/bash
+# This file is protected by Copyright. Please refer to the COPYRIGHT file
+# distributed with this source distribution.
 #
-# Start|Stop a REDHAWK Domain of the given name:
-#    domain.sh start REDHAWK_2 SDRROOT_VOLUME OMNISERVER
-#              stop  REDHAWK_2
+# This file is part of Docker REDHAWK.
 #
-# Notes: 
-#   The third and fourth arguments are optional on start.  
-#   If SDRROOT_VOLUME is not desired, but OMNISERVER is, set it to DEFAULT.
-#   If OMNISERVER is not provided, the omniserver container MUST be running.
+# Docker REDHAWK is free software: you can redistribute it and/or modify it under
+# the terms of the GNU Lesser General Public License as published by the Free
+# Software Foundation, either version 3 of the License, or (at your option) any
+# later version.
+#
+# Docker REDHAWK is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
+# details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with this program.  If not, see http://www.gnu.org/licenses/.
+#
+
 IMAGE_NAME=redhawk/domain
 
 # Detect the script's location
@@ -19,40 +29,104 @@ while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symli
 done
 DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
+
+# Try to detect the omniserver
+OMNISERVER="$($DIR/omniserver-ip.sh)"
+
 # Prints the status for all containers inheriting from redhawk/domain
-function print_status {
+function print_status() {
 	docker ps -a \
 		--filter="ancestor=${IMAGE_NAME}"\
 		--format="table {{.Names}}\t{{.Mounts}}\t{{.Networks}}\t{{.Status}}"
 }
 
+# Prints command usage information
+function usage () {
+	cat <<EOF
+
+Usage: $0 start|stop
+	[-d|--domain  DOMAIN_NAME] Domain Name, default is REDHAWK_DEV
+	[-s|--sdrroot NODE_NAME]   Node Name, Defaults to DevMgr_GPP_NAME
+	[-o|--omni    OMNISERVER]  IP to the OmniServer (detected: ${OMNISERVER})
+	[-p|--print]              Just print resolved settings
+
+Examples:
+	Start or stop a node:
+		$0 start|stop --domain REDHAWK_TEST2
+
+	Status of all locally-running ${IMAGE_NAME} instances:
+		$0
+
+EOF
+}
+
 if [ -z ${1+x} ]; then
 	print_status
 	exit 0
-else
-	if [[ $1 == "-h" ]] || [[ $1 == "--help" ]]; then
-		echo Help: 
-		echo STARTING: $0 start DOMAIN_NAME \[SDRROOT_VOLUME\] \[OMNISERVER\]
-		echo STOPPING: $0 stop  DOMAIN_NAME
-		echo - \[\] arguments are optional
-		echo - DOMAIN_NAME is the name to assign to the Domain \(and container\)
-		echo - SDRROOT_VOLUME is a named Docker volume to use for SDROOT
-		echo - OMNISERVER is the IP address of a \*remote\* Omni server
-		exit 0
-	fi
 fi
-if [ -z ${2+x} ]; then
-	echo You must provide a domain \(container\) name
+
+# Parse arguments
+while [[ $# -gt 0 ]]; do
+	key="$1"
+	case $key in
+		start|stop)
+			COMMAND="$1"
+			;;
+		-d|--domain)
+			DOMAIN_NAME="$2"
+			shift
+			;;
+		-s|--sdrroot)
+			SDRROOT_VOLUME="$2"
+			shift
+			;;
+		-o|--omni)
+			OMNISERVER="$2"
+			shift
+			;;
+		-h|--help)
+			usage
+			exit 0
+			;;
+		-p|--print)
+			JUST_PRINT=YES
+			;;
+		*)
+			echo ERROR: Undefined option: $1 $2
+			exit 1
+			;;
+	esac
+	shift # past argument
+done
+
+
+if [ -z ${COMMAND+x} ]; then
+	usage
+	echo ERROR: No command specified \(start or stop\)
 	exit 1
 fi
-COMMAND=$1
-CONTAINER_NAME=$2
-SDRROOT_VOLUME=${3:-DEFAULT}
-OMNISERVER=${4:-DEFAULT}
-OMNISERVER_NAME=omniserver
+if [[ $OMNISERVER == "" ]]; then
+	usage
+	echo ERROR: No omniserver running or OmniORB Server IP specified
+	exit 1
+fi
+
+DOMAIN_NAME=${DOMAIN_NAME:-REDHAWK_DEV}
+SDRROOT_VOLUME=${SDRROOT_VOLUME:-DEFAULT}
 
 # Get volume command
 SDRROOT_CMD="$($DIR/sdrroot-cmd.sh $SDRROOT_VOLUME)"
+
+if ! [ -z ${JUST_PRINT+x} ]; then
+	cat <<EOF
+Resolved Settings:
+	COMMAND:        ${COMMAND}
+	DOMAIN_NAME:    ${DOMAIN_NAME}
+	SDRROOT_VOLUME: ${GPP_NAME}
+	OMNISERVER:     ${OMNISERVER}
+EOF
+	exit 0
+fi
 
 # Check if the image is installed yet, if not, build it.
 $DIR/image-exists.sh ${IMAGE_NAME}
@@ -63,83 +137,59 @@ if [ $? -gt 0 ]; then
 	}
 fi
 
+# Container name is the domain name
+CONTAINER_NAME=${DOMAIN_NAME}
+
 # Check if a domain is already running in that name.
 if [[ $COMMAND == "start" ]]; then
 	$DIR/container-running.sh ${CONTAINER_NAME}
-	if [ $? -eq 0 ]; then
-		echo Domain ${CONTAINER_NAME} is already running
-		exit 0
-	else
-		if [[ ${OMNISERVER} == "DEFAULT" ]]; then
-			# IP not provided, check for omniserver
-			$DIR/container-running.sh ${OMNISERVER_NAME}
-			if [ $? -gt 0 ]; then
-				echo No IP was provided for the Omni Server
-				echo The omniserver Docker Container is not running
-				echo Please start omniserver or provide a service IP.
-				exit 1
-			fi
-			# Get the omniserver IP and run linked to the server.
-			OMNISERVER="$($DIR/omniserver-ip.sh)"
-			echo Connecting to local omniserver: $OMNISERVER
-			docker run --rm -d \
-				-e DOMAINNAME=${CONTAINER_NAME} \
-				-e OMNISERVICEIP=${OMNISERVER} \
-				${SDRROOT_CMD} \
-				--link ${OMNISERVER_NAME} \
-				--name ${CONTAINER_NAME} \
-				${IMAGE_NAME} &> /dev/null
-		else
-			# IP is provided, start domain with service IP
-			echo Connecting to remote omniserver: $OMNISERVER
-			docker run --rm -d \
-				-e DOMAINNAME=${CONTAINER_NAME} \
-				-e OMNISERVICEIP=${OMNISERVER} \
-				${SDRROOT_CMD} \
-				--name ${CONTAINER_NAME} \
-				${IMAGE_NAME} &> /dev/null
-		fi
-
-		# Verify it is running
-		sleep 5
-		$DIR/container-running.sh ${CONTAINER_NAME}
-		if [ $? -gt 0 ]; then
-			echo Failed to start ${CONTAINER_NAME}
-			docker stop ${CONTAINER_NAME} &> /dev/null
-			exit 1
-		else
-			echo Started ${CONTAINER_NAME}
-			exit 0
-		fi
-	fi
-elif [[ $COMMAND == "stop" ]]; then
-	$DIR/container-running.sh ${CONTAINER_NAME}
 	case $? in
-	2)
-		echo ${CONTAINER_NAME} does not exist
-		exit 1
-		;;
-	1)
-		echo ${CONTAINER_NAME} is already stopped
-		exit 0
-		;;
-	*)
-		echo Stopping ${CONTAINER_NAME} ...
-		docker stop --time 5 ${CONTAINER_NAME} &> /dev/null
+		1)
+			echo Starting...$(docker start ${CONTAINER_NAME})
+			exit 0;
+			;;
+		0)
+			echo ${IMAGE_NAME} ${CONTAINER_NAME} is already running
+			exit 0;
+			;;
+		*)
+			# Does not exist (expected), create it.
+			# Compare Omni server IPs
+			LOCAL_OMNI="$($DIR/omniserver-ip.sh)"
+			if [[ ${OMNISERVER} == ${LOCAL_OMNI} ]]; then
+				OMNISERVER_NAME=omniserver
+				echo Connecting to local omniserver: $OMNISERVER
+				docker run --rm -d \
+					-e DOMAINNAME=${CONTAINER_NAME} \
+					-e OMNISERVICEIP=${OMNISERVER} \
+					${SDRROOT_CMD} \
+					--link ${OMNISERVER_NAME} \
+					--name ${CONTAINER_NAME} \
+					${IMAGE_NAME} &> /dev/null
+			else
+				# IP is provided, start domain with service IP
+				echo Connecting to remote omniserver: $OMNISERVER
+				docker run --rm -d \
+					-e DOMAINNAME=${CONTAINER_NAME} \
+					-e OMNISERVICEIP=${OMNISERVER} \
+					${SDRROOT_CMD} \
+					--name ${CONTAINER_NAME} \
+					${IMAGE_NAME} &> /dev/null
+			fi
 
-		# Verify it stopped
-		sleep 6
-		$DIR/container-running.sh ${CONTAINER_NAME}
-		if [ $? -eq 0 ]; then
-			echo Failed to stop ${CONTAINER_NAME}
-			exit 1
-		else
-			echo Stopped ${CONTAINER_NAME}
-			exit 0
-		fi
-		;;
+			# Verify it is running
+			sleep 5
+			$DIR/container-running.sh ${CONTAINER_NAME}
+			if [ $? -gt 0 ]; then
+				echo Failed to start ${CONTAINER_NAME}
+				docker stop ${CONTAINER_NAME} &> /dev/null
+				exit 1
+			else
+				echo Started ${CONTAINER_NAME}
+				exit 0
+			fi
+			;;
 	esac
-else
-	echo Unknown command ${COMMAND}
-	exit 1
+elif [[ $COMMAND == "stop" ]]; then
+	$DIR/stop-container.sh ${CONTAINER_NAME}
 fi
