@@ -29,19 +29,23 @@ redhawk_images := \
 	# redhawk/rtl2832u \
 	# redhawk/webserver
 all_images := $(repo) $(omni) $(runtime) $(redhawk_images)
+reversed := $(redhawk_images) $(runtime) $(omni) $(repo)
 
 linked_scripts := omniserver domain sdrroot login gpp
 
 # Macros for querying an image vs. building one.
-image_check = docker images -q $1
-image_build = $(if $(strip $(shell $(call image_check, $1))),, \
+image_check = $(strip $(shell docker images -q $1))
+image_build = $(if $(call image_check,$1),, \
 	docker build --rm \
 		-f ./Dockerfiles/$(subst redhawk/,,$1).Dockerfile \
 		-t $1 \
 		./Dockerfiles \
 	)
 
-.PHONY: all clean images $(all_images) scripts
+.PHONY: all clean $(all_images)
+
+# Everything
+all: $(redhawk_images) $(linked_scripts) $(omni)
 
 # Image building targets
 $(repo):
@@ -58,29 +62,28 @@ $(linked_scripts):
 	@ln -s scripts/$@.sh ./$@
 	@chmod a+x ./$@
 
-# Groups, all
-images: $(redhawk_images)
-scripts: $(linked_scripts)
-all: images scripts
+# Cleaning methods
+stop_container = $(shell docker stop $1 &> /dev/null)
+remove_container = $(shell docker rm $1 &> /dev/null)
+remove_image = $(shell docker rmi $1 &> /dev/null)
 
-# Cleaner
+list_containers = $(shell docker ps -qa --filter="ancestor=$1" &> /dev/null)
+for_each_container = $(foreach container,$(call list_containers,$1),\
+	$(info --> Stopping $1) \
+	$(call stop_container,$(container)) \
+	$(info --> Removing $1) \
+	$(call remove_container,$(container)) \
+	)
+for_each_image = $(foreach image,$1,\
+	$(info Checking $(image)...) \
+	$(if $(call image_check,$(image)),\
+		$(call for_each_container,$(image)) \
+		$(info Removing $(image)) \
+		$(call remove_image,$(image)), \
+		$(info Nothing to do for $(image)) \
+		)\
+	)
+
 clean:
-	@echo Removing script links
+	@$(call for_each_image,$(reversed))
 	@rm -f $(linked_scripts)
-	reversed=$(redhawk_images) $(runtime) $(omni) $(repo)
-	$(foreach image,$(reversed),\
-		$(if $(strip $(shell $(call image_check, $(image)))),\
-			$(shell echo Stopping and removing any containers for $(image)) ; \
-			$(foreach container,$(shell docker -qa --filter="ancestor=$(image)"), \
-				$(shell echo ->    Stopping: $(container)) ; \
-				$(shell docker stop $(container)) ; \
-				$(shell echo ->    Removing: $(container)) ; \
-				$(shell docker rm $(container)) ; \
-				) ; \
-			$(shell echo Removing image: $(image)) ; \
-			$(shell docker rmi $(image)) ; \
-			,) \
-		)
-	@echo **** DO ANY OF THESE LOOK FAMILIAR? ****
-	$(shell docker volume ls -q)
-	@echo You will need to remove them manually \(docker volume rm VOLUME\)
