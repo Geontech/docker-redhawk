@@ -29,15 +29,38 @@ while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symli
 done
 DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
+# Pulls everything that inherits from redhawk/runtime
+function print_status() {
+	docker ps -a \
+		--filter="ancestor=redhawk/runtime" \
+		--filter="status=running" \
+		--format="table {{.Image}}\t{{.Names}}\t{{.Status}}"
+}
+
+function usage () {
+	cat <<EOF
+
+Usage: $0 [CONTAINER_NAME] [USER]
+	[CONTAINER_NAME]   The Docker Container name to log into
+	[USER]             User name (must be valid for the container)
+
+Examples:
+	List all running containers:
+		$0
+
+	Join a Domain container as the "redhawk" user
+		$0 REDHAWK_TEST2 redhawk
+
+EOF
+}
+
 # Param check, help, etc.
 if [ -z ${1+x} ]; then
-	echo You must supply a container name
-	exit 1;
+	print_status
+	exit 0;
 else
 	if [[ $1 == "-h" ]] || [[ $1 == "--help" ]]; then
-		echo Help: $0 CONTAINER_NAME \[USER_NAME\]
-		echo - \[\] arguments are optional
-		echo - USER_NAME is the username to login with \(default root\)
+		usage
 		exit 0
 	fi
 fi
