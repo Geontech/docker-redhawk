@@ -11,7 +11,8 @@ To build all images, simply type `make`.  You will end up with the following ima
 
 The remaining images are derived and come with helper scripts for deploying your system:
 
- * `redhawk/omniserver`: OmniORB and OmniEvents services wrapped in a single image, intended to be run as a singleton in the network.  If you have an Omni server running elsewhere, you do not need this.
+ * `redhawk/omniserver`: Inherits from `redhawk/base`, it has OmniORB and OmniEvents services wrapped in a single image, intended to be run as a singleton in the network.  If you have an Omni server running elsewhere, you do not need this.
+ * `redhawk/development`: Configured to expose a workspace volume and run the IDE.
  * `redhawk/domain`: Configured to run as a Domain.
  * `redhawk/gpp`: Configured to run as a GPP -bearing Node.
  * `redhawk/rtl2832u`: Configured to run as an RTL2832U -bearing Node. 
@@ -25,6 +26,7 @@ The remaining images are derived and come with helper scripts for deploying your
  * `login`: Starts a bash shell as a specified user (optional).
  * `omniserver`: Starts and stops a local OmniORB service either in bridged or networked mode.
  * `sdrroot`: Creates or deletes a Docker volume that can be shared as SDRROOT which can be shared with other containers, such as a Domain or Development (IDE).
+ * `development`: Runs a container 
  * `domain`: Starts or stops a named REDHAWK domain with, optionally, an SDRROOT volume name and external OmniServer IP address.
  * `gpp`: Starts or stops a GPP for the named domain and external OmniServer IP address.
 
@@ -35,15 +37,15 @@ The remaining images are derived and come with helper scripts for deploying your
 The main elements one needs for a REDHAWK system are the naming and event services (OmniORB and OmniEvents), a Domain, and a GPP.  If the scripts are not in the main directory, use `make scripts` to generate the links.  Each scripts supports the `-h` and `--help` that cover usage.  Below is a simplified example.
 
     ./omniserver host
-    ./domain start REDHAWK_DEV1 DEV1_ROOT
+    ./domain start -d REDHAWK_DEV1
 
-At this point you will have a functioning REDHAWK Domain and GPP pointed at a host-exposed OmniORB server.  Other non-Docker REDHAWK instances can now join this Domain as well as long as your host system's firewall settings expose ports 2809 and 11169.
+At this point you will have a functioning REDHAWK Domain at a host-exposed OmniORB server.  Other non-Docker REDHAWK instances can now join this Domain as well as long as your host system's firewall settings expose ports 2809 and 11169.
 
-    ./gpp start -g GPP1 REDHAWK_DEV1
+    ./gpp start -g GPP1 -d REDHAWK_DEV1
 
 A GPP container launches and joins REDHAWK_DEV1 as the node DevMgr_GPP1.  You can now launch waveforms.
 
-If you would like to join the Domain container, use `login`:
+If you would like to log into the Domain container, use `login`:
 
     ./login REDHAWK_DEV1 redhawk
 
@@ -53,17 +55,20 @@ You will enter a bash shell as the `redhawk` user.
 
 ## Persistent SDRROOT
 
-Use `make sdrroot.sh` to expose a utility script for creating an SDRROOT volume that can be mounted to the Domain and IDE.
+Use `sdrroot` to create an SDRROOT volume that can be mounted to the Domain and IDE.
 
-    ./sdrroot.sh create MY_REDHAWK
-    ./rhide.sh MY_REDHAWK
-    ./domain.sh start MY_DOMAIN MY_REDHAWK
+    ./sdrroot create --sdrroot MY_REDHAWK
+    ./domain start --domain MY_DOMAIN --sdrroot MY_REDHAWK
 
-The result will be an IDE instance with access to your SDRROOT 
+The result will be a Domain with a persistent SDRROOT.
 
 ## Running the IDE
 
- * `redhawk/development`: Use `make rhide.sh` to get a utility script for starting the IDE.
+The `redhawk/development` image provides the development libraries necessary to develop components and devices.  Use the `rhide` script to map your SDRROOT volume and workspace (absolute path or volume name):
+
+    ./rhide --sdrroot MY_REDHAWK --workspace /home/me/workspace
+
+ > **TBD:** Need to add the script so that it passes an environment variable for the user ID and group ID so that we can slip their user into place.
 
 ## Device Node Auto-launchers
 
