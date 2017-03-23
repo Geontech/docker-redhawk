@@ -17,27 +17,6 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 #
-# Creates or removes SDRROOT volumes.  Arguments:
-#
-# 1) create|delete
-# 2) VOLUME_NAME
-
-if [ -z ${1+x} ]; then
-	echo You must state either create or delete
-	exit 1
-else
-	if [[ $1 == "-h" ]] || [[ $1 == "--help" ]]; then
-		echo Help: $0 create\|delete VOLUME_NAME
-		echo - VOLUME_NAME is the name to use for the volume
-		exit 0
-	fi
-fi
-if [ -z ${2+x} ]; then
-	echo You must provide a \(unique\) volume name
-	exit 1
-fi
-COMMAND=${1}
-VOLUME_NAME=${2}
 
 # Detect the script's location
 SOURCE="${BASH_SOURCE[0]}"
@@ -48,6 +27,60 @@ while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symli
 done
 DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
+function usage () {
+	cat <<EOF
+
+Usage: $0 create|delete -s|--sdrroot VOLUME_NAME
+
+EOF
+}
+
+function print_status () {
+	cat <<EOF
+
+All volumes:
+VOLUME NAME
+$(docker volume ls --format="{{.Name}}")
+
+Volumes mounted to domains:
+$(docker ps -a --filter="ancestor=redhawk/domain" --format="table {{.Names}}\t{{.Mounts}}")
+
+EOF
+}
+
+if [ -z ${1+x} ]; then
+	print_status
+	exit 0
+fi
+
+# Parse arguments
+while [[ $# -gt 0 ]]; do
+	key="$1"
+	case $key in
+		create|delete)
+			COMMAND="$1"
+			;;
+		-h|--help)
+			usage
+			exit 0
+			;;
+		*)
+			VOLUME_NAME="$1"
+			;;
+	esac
+	shift # past argument
+done
+
+if [ -z ${COMMAND+x} ]; then
+	usage
+	echo ERROR: You must a command, start or stop
+	exit 1
+fi
+if [ -z ${VOLUME_NAME+x} ]; then
+	usage
+	echo ERROR: You must provide a \(unique\) volume name
+	exit 1
+fi
 
 if [[ $COMMAND == "create" ]]; then
 	$DIR/volume-exists.sh ${VOLUME_NAME}
@@ -64,7 +97,4 @@ elif [[ $COMMAND == "delete" ]]; then
 	else
 		echo Removing... $(docker volume rm ${VOLUME_NAME})
 	fi;
-else
-	echo Unknown command: ${COMMAND}
-	exit 1
 fi
