@@ -25,8 +25,6 @@ LABEL version="2.0.5" description="CentOS 7 with REDHAWK Runtime"
 RUN yum update -y && \
 	yum groupinstall -y "REDHAWK Runtime"
 
-VOLUME /var/redhawk/sdr
-
 CMD ["/bin/bash", "-l"]
 
 
