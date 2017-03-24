@@ -74,6 +74,11 @@ while [[ $# -gt 0 ]]; do
 	key="$1"
 	case $key in
 		start|stop)
+			if ! [ -z ${COMMAND+x} ]; then
+				usage
+				echo ERROR: The start and stop commands are mutually exclusive.
+				exit 1
+			fi
 			COMMAND="$1"
 			;;
 		host|bridge)
