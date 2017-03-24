@@ -35,15 +35,17 @@ Usage: $0 create|delete -s|--sdrroot VOLUME_NAME
 EOF
 }
 
+source $DIR/volume-labels.sh
+
 function print_status () {
 	cat <<EOF
 
-All volumes:
+All SDRROOT volumes:
 VOLUME NAME
-$(docker volume ls --format="{{.Name}}")
+$(docker volume ls --format="{{.Name}}" --filter="label=${SDRROOT_LABEL}")
 
 Volumes mounted to domains:
-$(docker ps -a --filter="ancestor=redhawk/domain" --format="table {{.Names}}\t{{.Mounts}}")
+$(docker ps -a --filter="ancestor=redhawk/domain" --filter="label=${SDRROOT_LABEL}" --format="table {{.Names}}\t{{.Mounts}}")
 
 EOF
 }
@@ -82,19 +84,4 @@ if [ -z ${VOLUME_NAME+x} ]; then
 	exit 1
 fi
 
-if [[ $COMMAND == "create" ]]; then
-	$DIR/volume-exists.sh ${VOLUME_NAME}
-	if [ $? -eq 0 ]; then
-		echo The volume ${VOLUME_NAME} already exists
-		exit 1
-	else
-		echo Creating... $(docker volume create ${VOLUME_NAME})
-		
-	fi
-elif [[ $COMMAND == "delete" ]]; then
-	if [ $? -eq 1 ]; then
-		echo The volume ${VOLUME_NAME} does not exist
-	else
-		echo Removing... $(docker volume rm ${VOLUME_NAME})
-	fi;
-fi
+$DIR/volume-manager.sh $COMMAND sdrroot $VOLUME_NAME

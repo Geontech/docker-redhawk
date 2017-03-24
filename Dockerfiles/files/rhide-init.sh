@@ -17,28 +17,24 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 #
-# Returns:
-#  0) Volume exists
-#  1) Volume does not exist
+set -e
 
+# Change generic user's ID to the external user's which will re-chown
+# the home directory and workspace
+chown -R ${RHUSER_ID}:redhawk /home/user
+usermod -u ${RHUSER_ID} user
 
-# Detect the script's location
-SOURCE="${BASH_SOURCE[0]}"
-while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
-  DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
-  SOURCE="$(readlink "$SOURCE")"
-  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
-done
-DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
-
-
-LABEL_FILTER=""
-if ! [ -z ${2+x} ]; then
-	LABEL_FILTER="--filter=label=${2}"
+# Set d-bus machine-id
+if [ ! -e /etc/machine-id ]; then
+	dbus-uuidgen > /etc/machine-id
 fi
 
-if [[ $(docker volume ls -q ${LABEL_FILTER} --filter=name=$1) == "$1" ]]; then
-	exit 0
-else
-	exit 1
-fi
+# Start d-bus
+mkdir -p /var/run/dbus
+dbus-daemon --system
+
+# Run the IDE as the user in vnc
+rm -f /tmp/.X*-lock
+Xvnc -SecurityTypes=none ${DISPLAY} &
+mutter -d ${DISPLAY} &
+su -lc 'rhide --data /home/user/redhawk_workspace' user

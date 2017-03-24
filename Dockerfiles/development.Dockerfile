@@ -24,14 +24,23 @@ LABEL version="2.0.5" description="CentOS 7 with REDHAWK Development Environment
 # Install development environment
 RUN yum update -y && \
 	yum groupinstall -y "REDHAWK Development" && \
-	mkdir -p /home/redhawk/workspace && \
-	chown -R redhawk:redhawk /home/redhawk
+	yum install -y mutter tigervnc-server-minimal
 
-USER redhawk
-WORKDIR /home/redhawk/workspace
+ADD files/rhide-init.sh /opt/rhide-init.sh
+
+ENV RHUSER_ID 54321
+
+RUN useradd \
+	--system \
+	--uid ${RHUSER_ID} \
+	--create-home \
+	--shell /bin/bash \
+	--groups redhawk \
+	user
+RUN su -m user -c 'mkdir -p /home/user/redhawk_workspace'
 
 VOLUME /var/redhawk/sdr
-VOLUME /home/redhawk/workspace
+VOLUME /home/user/redhawk_workspace
 
-# Default, run the REDHAWK IDE (rhide)
-CMD ["/bin/bash", "-l", "-c", "rhide"]
+# Run the RHIDE init script
+CMD ["/opt/rhide-init.sh"]

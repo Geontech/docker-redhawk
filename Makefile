@@ -24,14 +24,12 @@ redhawk_images := \
 	redhawk/development \
 	redhawk/domain \
 	redhawk/gpp
-	# redhawk/gpp \
-	# redhawk/usrp \
+	# redhawk/webserver \
 	# redhawk/rtl2832u \
-	# redhawk/webserver
+	# redhawk/usrp
 all_images := $(repo) $(omni) $(runtime) $(redhawk_images)
-reversed := $(redhawk_images) $(runtime) $(omni) $(repo)
 
-linked_scripts := omniserver domain sdrroot login gpp
+linked_scripts := omniserver domain sdrroot login gpp rhide volume-manager
 
 # Macros for querying an image vs. building one.
 image_check = $(strip $(shell docker images -q $1))
@@ -63,6 +61,7 @@ $(linked_scripts):
 	@chmod a+x ./$@
 
 # Cleaning methods
+reversed := $(redhawk_images) $(runtime) $(omni) $(repo)
 stop_container = $(shell docker stop $1 &> /dev/null)
 remove_container = $(shell docker rm $1 &> /dev/null)
 remove_image = $(shell docker rmi $1 &> /dev/null)
