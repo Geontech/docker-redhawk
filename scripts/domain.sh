@@ -45,13 +45,14 @@ function usage () {
 	cat <<EOF
 
 Usage: $0 start|stop
-	[-d|--domain  DOMAIN_NAME] Domain Name, default is REDHAWK_DEV
-	[-s|--sdrroot NODE_NAME]   Node Name, Defaults to DevMgr_GPP_NAME
-	[-o|--omni    OMNISERVER]  IP to the OmniServer (detected: ${OMNISERVER})
-	[-p|--print]               Just print resolved settings
+	[-d|--domain  DOMAIN_NAME]    Domain Name, default is REDHAWK_DEV
+	[-s|--sdrroot SDRROOT_VOLUME] SDRROOT Volume Name
+	[-o|--omni    OMNISERVER]     IP to the OmniServer 
+	                              (detected: ${OMNISERVER})
+	[-p|--print]                  Just print resolved settings
 
 Examples:
-	Start or stop a node:
+	Start or stop a domain:
 		$0 start|stop --domain REDHAWK_TEST2
 
 	Status of all locally-running ${IMAGE_NAME} instances:
@@ -70,6 +71,11 @@ while [[ $# -gt 0 ]]; do
 	key="$1"
 	case $key in
 		start|stop)
+			if ! [ -z ${COMMAND+x} ]; then
+				usage
+				echo ERROR: The start and stop commands are mutually exclusive.
+				exit 1
+			fi
 			COMMAND="$1"
 			;;
 		-d|--domain)
@@ -111,22 +117,27 @@ if [[ $OMNISERVER == "" ]]; then
 	exit 1
 fi
 
+# Default Domain name
 DOMAIN_NAME=${DOMAIN_NAME:-REDHAWK_DEV}
-SDRROOT_VOLUME=${SDRROOT_VOLUME:-DEFAULT}
 
-# Get volume command
-SDRROOT_CMD="$($DIR/sdrroot-cmd.sh $SDRROOT_VOLUME)"
-
+# "Just print"
 if ! [ -z ${JUST_PRINT+x} ]; then
 	cat <<EOF
 Resolved Settings:
 	COMMAND:        ${COMMAND}
 	DOMAIN_NAME:    ${DOMAIN_NAME}
-	SDRROOT_VOLUME: ${GPP_NAME}
+	SDRROOT_VOLUME: ${SDRROOT_VOLUME:-In Container}
 	OMNISERVER:     ${OMNISERVER}
 EOF
 	exit 0
 fi
+
+# Default SDRROOT_VOLUME and volume command
+# Q) Why uuidgen for SDRROOT_VOLUME default?
+# A) Almost no way it'll ever be true, so sdrroot-cmd will be empty.
+SDRROOT_VOLUME=${SDRROOT_VOLUME:-$(uuidgen)}
+SDRROOT_CMD="$($DIR/sdrroot-cmd.sh $SDRROOT_VOLUME)"
+
 
 # Check if the image is installed yet, if not, build it.
 $DIR/image-exists.sh ${IMAGE_NAME}
