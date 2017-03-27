@@ -163,7 +163,7 @@ case $COMMAND in
 				print_status_workspace
 				;;
 			*)
-				print
+				print_status
 				;;
 		esac
 		;;
