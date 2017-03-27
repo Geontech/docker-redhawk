@@ -245,36 +245,17 @@ case ${COMMAND} in
 				;;
 			2)
 				# Does not exist (good, let's make it)
-				DISPLAY_ID=:3
-				# Compare Omni server IPs
-				LOCAL_OMNI="$($DIR/omniserver-ip.sh)"
-				if [[ ${OMNISERVER} == ${LOCAL_OMNI} ]]; then
-					OMNISERVER_NAME=omniserver
-					echo Connecting to local omniserver: $OMNISERVER
-					docker run --rm -it \
-						-e RHUSER_ID=$(id -u) \
-						-e OMNISERVICEIP=${OMNISERVER} \
-						-e DISPLAY=$DISPLAY_ID \
-						${SDRROOT_CMD} \
-						${WORKSPACE_CMD} \
-						--link ${OMNISERVER_NAME} \
-						--name ${CONTAINER_NAME} \
-						${IMAGE_NAME} # &> /dev/null
-				else
-					# IP is provided, start domain with service IP
-					echo Connecting to remote omniserver: $OMNISERVER
-					docker run --rm -d \
-						-e RHUSER_ID=$(id -u) \
-						-e OMNISERVICEIP=${OMNISERVER} \
-						-e DISPLAY=$DISPLAY_ID \
-						${SDRROOT_CMD} \
-						${WORKSPACE_CMD} \
-						--name ${CONTAINER_NAME} \
-						${IMAGE_NAME} &> /dev/null
-				fi
-				# Join via VNC
-				CONTAINER_IP="$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${CONTAINER_NAME})"
-				vncviewer ${CONTAINER_IP}${DISPLAY_ID}
+				X11_UNIX=/tmp/.X11-unix
+				docker run --rm -d \
+					-e RHUSER_ID=$(id -u) \
+					-e OMNISERVICEIP=${OMNISERVER} \
+					-e DISPLAY=$DISPLAY \
+					${SDRROOT_CMD} \
+					${WORKSPACE_CMD} \
+					-v $X11_UNIX:$X11_UNIX \
+					--net host \
+					--name ${CONTAINER_NAME} \
+					${IMAGE_NAME} &> /dev/null
 				;;
 			*)
 				echo ERROR: Unknown container state for ${CONTAINER_NAME}: $?

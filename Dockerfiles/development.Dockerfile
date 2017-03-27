@@ -24,7 +24,10 @@ LABEL version="2.0.5" description="CentOS 7 with REDHAWK Development Environment
 # Install development environment
 RUN yum update -y && \
 	yum groupinstall -y "REDHAWK Development" && \
-	yum install -y mutter tigervnc-server-minimal
+	yum install -y \
+		PackageKit-gtk-module \
+		libcanberra-gtk2 \
+		sudo
 
 ADD files/rhide-init.sh /opt/rhide-init.sh
 
@@ -37,10 +40,11 @@ RUN useradd \
 	--shell /bin/bash \
 	--groups redhawk \
 	user
-RUN su -m user -c 'mkdir -p /home/user/redhawk_workspace'
+RUN su -m user -c 'mkdir -p /home/user/redhawk_workspace' && \
+	su -m user -c 'mkdir -p /home/user/.eclipse'
 
 VOLUME /var/redhawk/sdr
 VOLUME /home/user/redhawk_workspace
 
 # Run the RHIDE init script
-CMD ["/opt/rhide-init.sh"]
+CMD ["/bin/bash", "-l", "-c", "/opt/rhide-init.sh"]

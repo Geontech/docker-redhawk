@@ -17,24 +17,14 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 #
-set -e
 
-# Change generic user's ID to the external user's which will re-chown
-# the home directory and workspace
-chown -R ${RHUSER_ID}:redhawk /home/user
+# Change generic user's ID to the external user's
+# so that everything in the workspace is owned by the host's user ID
 usermod -u ${RHUSER_ID} user
+chown -R user:redhawk /home/user
 
-# Set d-bus machine-id
-if [ ! -e /etc/machine-id ]; then
-	dbus-uuidgen > /etc/machine-id
-fi
+# Generate machine id
+dbus-uuidgen > /etc/machine-id
 
-# Start d-bus
-mkdir -p /var/run/dbus
-dbus-daemon --system
-
-# Run the IDE as the user in vnc
-rm -f /tmp/.X*-lock
-Xvnc -SecurityTypes=none ${DISPLAY} &
-mutter -d ${DISPLAY} &
-su -lc 'rhide --data /home/user/redhawk_workspace' user
+# Run the IDE
+sudo -Eu user bash -c 'rhide -data /home/user/redhawk_workspace'
