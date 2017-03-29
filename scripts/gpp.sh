@@ -99,7 +99,7 @@ while [[ $# -gt 0 ]]; do
 			JUST_PRINT=YES
 			;;
 		*)
-			echo ERROR: Undefined option: $1 $2
+			echo ERROR: Undefined option: $1
 			exit 1
 			;;
 	esac
