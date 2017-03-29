@@ -22,9 +22,8 @@ MAINTAINER Thomas Goodwin <btgoodwin@geontech>
 LABEL version="2.0.5" description="CentOS 7 running Omni Services"
 
 # Install pip, supervisord, and the omni* configuration.
-RUN yum update -y && \
-	yum install -y \
-		python-pip
+RUN yum update -y && yum install -y python-dev curl
+RUN curl https://bootstrap.pypa.io/get-pip.py | python
 RUN pip install --upgrade pip && \
 	pip install --upgrade supervisor && \
 	mkdir -p /var/log/omniORB && \
