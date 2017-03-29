@@ -52,31 +52,53 @@ Examples:
 EOF
 }
 
+function get_volumes() {
+	echo $(docker volume ls --format="{{.Name}}" --filter="label=$1")
+}
+
+function print_status_for_volumes() {
+	ancestor=""
+	if ! [ -z ${2+x} ]; then
+		ancestor="--filter ancestor=$2"
+	fi
+	for volume in $1; do
+		containers=$(docker ps -a --filter volume=$volume $ancestor --format="{{.Names}}")
+		if [[ ${containers} == "" ]]; then
+			echo "$volume is not mounted."
+		else
+			for container in $containers; do
+				echo "$container	<==>	$volume"
+			done
+		fi
+	done
+}
+
 function print_status_sdrroot () {
+	volumes=$(get_volumes ${SDRROOT_LABEL})
 	cat <<EOF
 
 SDRROOT Volumes:
-VOLUME NAME
-$(docker volume ls --format="{{.Name}}" --filter="label=${SDRROOT_LABEL}")
-
-Volumes mounted to domain or development:
-$(docker ps -a --filter="ancestor=redhawk/domain" --format="table {{.Names}}\t{{.Mounts}}")
-$(docker ps -a --filter="ancestor=redhawk/development" --format="{{.Names}}\t{{.Mounts}}")
+${volumes}
 
 EOF
+	echo Domains:
+	print_status_for_volumes $volumes redhawk/domain
+	echo ""
+	echo Development/IDEs:
+	print_status_for_volumes $volumes redhawk/development
 }
 
 function print_status_workspace () {
+	volumes=$(get_volumes ${WORKSPACE_LABEL})
 	cat <<EOF
 
 Workspace Volumes:
-VOLUME NAME
-$(docker volume ls --format="{{.Name}}" --filter="label=${WORKSPACE_LABEL}")
-
-Volumes mounted to development workspaces (IDEs):
-$(docker ps -a --filter="ancestor=redhawk/development" --format="table {{.Names}}\t{{.Mounts}}")
+${volumes}
 
 EOF
+
+	echo Development/IDEs:
+	print_status_for_volumes $volumes redhawk/development
 }
 
 function print_status () {
