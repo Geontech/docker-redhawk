@@ -37,7 +37,7 @@ OMNISERVER="$($DIR/omniserver-ip.sh)"
 function print_status() {
 	docker ps -a \
 		--filter="ancestor=${IMAGE_NAME}"\
-		--format="table {{.Names}}\t{{.Mounts}}\t{{.Networks}}\t{{.Status}}"
+		--format="table {{.Names}}\t{{.Mounts}}\t{{.Status}}"
 }
 
 # Prints command usage information
@@ -165,28 +165,13 @@ if [[ $COMMAND == "start" ]]; then
 			;;
 		*)
 			# Does not exist (expected), create it.
-			# Compare Omni server IPs
-			LOCAL_OMNI="$($DIR/omniserver-ip.sh)"
-			if [[ ${OMNISERVER} == ${LOCAL_OMNI} ]]; then
-				OMNISERVER_NAME=omniserver
-				echo Connecting to local omniserver: $OMNISERVER
-				docker run --rm -d \
-					-e DOMAINNAME=${CONTAINER_NAME} \
-					-e OMNISERVICEIP=${OMNISERVER} \
-					${SDRROOT_CMD} \
-					--link ${OMNISERVER_NAME} \
-					--name ${CONTAINER_NAME} \
-					${IMAGE_NAME} &> /dev/null
-			else
-				# IP is provided, start domain with service IP
-				echo Connecting to remote omniserver: $OMNISERVER
-				docker run --rm -d \
-					-e DOMAINNAME=${CONTAINER_NAME} \
-					-e OMNISERVICEIP=${OMNISERVER} \
-					${SDRROOT_CMD} \
-					--name ${CONTAINER_NAME} \
-					${IMAGE_NAME} &> /dev/null
-			fi
+			echo Connecting to omniserver: $OMNISERVER
+			docker run --rm -d \
+				-e DOMAINNAME=${CONTAINER_NAME} \
+				-e OMNISERVICEIP=${OMNISERVER} \
+				${SDRROOT_CMD} \
+				--name ${CONTAINER_NAME} \
+				${IMAGE_NAME} &> /dev/null
 
 			# Verify it is running
 			sleep 5

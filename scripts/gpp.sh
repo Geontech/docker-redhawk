@@ -161,31 +161,14 @@ if [[ $COMMAND == "start" ]]; then
 			;;
 		*)
 			# Does not exist (expected), create it.
-			# Compare Omni server IPs
-			LOCAL_OMNI="$($DIR/omniserver-ip.sh)"
-			if [[ ${OMNISERVER} == ${LOCAL_OMNI} ]]; then
-				OMNISERVER_NAME=omniserver
-				# Get the omniserver IP and run linked to the server.
-				echo Connecting to local omniserver: $OMNISERVER
-				docker run --rm -d \
-				    -e GPPNAME=${GPP_NAME} \
-				    -e NODENAME=${NODE_NAME} \
-				    -e DOMAINNAME=${DOMAIN_NAME} \
-				    -e OMNISERVICEIP=${OMNISERVER} \
-					--link ${OMNISERVER_NAME} \
-					--name ${CONTAINER_NAME} \
-					${IMAGE_NAME} &> /dev/null
-			else
-				# IP is provided, start domain with service IP
-				echo Connecting to remote omniserver: $OMNISERVER
-				docker run --rm -d \
-				    -e GPPNAME=${GPP_NAME} \
-				    -e NODENAME=${NODE_NAME} \
-				    -e DOMAINNAME=${DOMAIN_NAME} \
-				    -e OMNISERVICEIP=${OMNISERVER} \
-					--name ${CONTAINER_NAME} \
-					${IMAGE_NAME} &> /dev/null
-			fi
+			echo Connecting to omniserver: $OMNISERVER
+			docker run --rm -d \
+			    -e GPPNAME=${GPP_NAME} \
+			    -e NODENAME=${NODE_NAME} \
+			    -e DOMAINNAME=${DOMAIN_NAME} \
+			    -e OMNISERVICEIP=${OMNISERVER} \
+				--name ${CONTAINER_NAME} \
+				${IMAGE_NAME} &> /dev/null
 
 			# Verify it is running
 			sleep 5
