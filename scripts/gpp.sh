@@ -112,11 +112,6 @@ if [ -z ${COMMAND+x} ]; then
 	echo ERROR: No command specified \(start or stop\)
 	exit 1
 fi
-if [[ $OMNISERVER == "" ]]; then
-	usage
-	echo ERROR: No omniserver running or OmniORB Server IP specified
-	exit 1
-fi
 
 # Enforce defaults
 GPP_NAME=${GPP_NAME:-GPP_$(uuidgen)}
@@ -130,7 +125,7 @@ Resolved Settings:
 	GPP_NAME:     ${GPP_NAME}
 	NODE_NAME:    ${NODE_NAME}
 	DOMAIN_NAME:  ${DOMAIN_NAME}
-	OMNISERVER:   ${OMNISERVER}
+	OMNISERVER:   ${OMNISERVER:-None Specified}
 EOF
 	exit 0
 fi
@@ -149,6 +144,11 @@ CONTAINER_NAME=${NODE_NAME}
 
 # Handle the command
 if [[ $COMMAND == "start" ]]; then
+	if [[ $OMNISERVER == "" ]]; then
+		usage
+		echo ERROR: No omniserver running or OmniORB Server IP specified
+		exit 1
+	fi
 	$DIR/container-running.sh ${CONTAINER_NAME}
 	case $? in
 		1)
