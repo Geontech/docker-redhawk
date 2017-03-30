@@ -169,12 +169,12 @@ if [[ $COMMAND == "start" ]]; then
 			docker run --rm -d \
 				-e DOMAINNAME=${CONTAINER_NAME} \
 				-e OMNISERVICEIP=${OMNISERVER} \
+				--net host \
 				${SDRROOT_CMD} \
 				--name ${CONTAINER_NAME} \
 				${IMAGE_NAME} &> /dev/null
 
 			# Verify it is running
-			sleep 5
 			$DIR/container-running.sh ${CONTAINER_NAME}
 			if [ $? -gt 0 ]; then
 				echo Failed to start ${CONTAINER_NAME}

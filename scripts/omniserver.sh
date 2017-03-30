@@ -35,14 +35,13 @@ function usage () {
 
 Usage: $0 start|stop [NETWORK_TYPE]
 	start|stop       Start or stop the omniserver
-	[NETWORK_TYPE]   Network type, bridge (default) or host
 
 Examples:
 	Status of omniserver:
 		$0
 
-	Start the omniserver exposed to the host network
-		$0 start host
+	Start the omniserver:
+		$0 start
 
 EOF
 }
@@ -81,15 +80,12 @@ while [[ $# -gt 0 ]]; do
 			fi
 			COMMAND="$1"
 			;;
-		host|bridge)
-			NETWORK="$1"
-			;;
 		-h|--help)
 			usage
 			exit 0
 			;;
 		*)
-			echo ERROR: Undefined option: $1 $2
+			echo ERROR: 1Undefined option: $1
 			exit 1
 			;;
 	esac
@@ -102,7 +98,6 @@ if [ -z ${COMMAND+x} ]; then
 	echo ERROR: No command specified \(start or stop\)
 	exit 1
 fi
-NETWORK=${NETWORK:-bridge}
 
 
 # Check if the image is installed yet, if not, build it.
@@ -122,24 +117,11 @@ if [[ $COMMAND == "start" ]]; then
 		exit 0
 	else
 		echo Starting ${CONTAINER_NAME} ...
-		if [[ $NETWORK == "bridge" ]]; then
-			echo Bridge network selected
-			docker run --rm -d \
-				-p 2809:2809 \
-				-p 11169:11169 \
-				--name ${CONTAINER_NAME} ${IMAGE_NAME} &> /dev/null
-		elif [[ $NETWORK == "host" ]]; then
-			echo Host network selected
-			docker run --rm -d \
-				--network host \
-				--name ${CONTAINER_NAME} ${IMAGE_NAME} &> /dev/null
-		else
-			echo Unknown network selected: ${NETWORK}
-			exit 1
-		fi
+		docker run --rm -d \
+			--network host \
+			--name ${CONTAINER_NAME} ${IMAGE_NAME} &> /dev/null
 		
 		# Verify it's running
-		sleep 5
 		$DIR/container-running.sh ${CONTAINER_NAME}
 		if [ $? -gt 0 ]; then
 			echo Failed to start ${IMAGE_NAME}

@@ -167,11 +167,11 @@ if [[ $COMMAND == "start" ]]; then
 			    -e NODENAME=${NODE_NAME} \
 			    -e DOMAINNAME=${DOMAIN_NAME} \
 			    -e OMNISERVICEIP=${OMNISERVER} \
+			    --net host \
 				--name ${CONTAINER_NAME} \
 				${IMAGE_NAME} &> /dev/null
 
 			# Verify it is running
-			sleep 5
 			$DIR/container-running.sh ${CONTAINER_NAME}
 			if [ $? -gt 0 ]; then
 				echo Failed to start ${CONTAINER_NAME}
