@@ -30,7 +30,7 @@ VOLUME /var/redhawk/sdr
 
 CMD [\
 	"/bin/bash", "-l", "-c", \
-	"nodeBooter -D --domainname ${DOMAINNAME}" \
+	"nodeBooter -D --domainname ${DOMAINNAME} &> /opt/nodeBooter.log" \
 	]
 
 

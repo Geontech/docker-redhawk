@@ -30,5 +30,5 @@ RUN echo "/root/gpp-node-init.sh" | tee -a /root/.bashrc
 
 CMD [\
 	"/bin/bash", "-l", "-c", \
-	"nodeBooter -d /nodes/${NODENAME}/DeviceManager.dcd.xml" \
+	"nodeBooter -d /nodes/${NODENAME}/DeviceManager.dcd.xml &> /opt/nodeBooter.log" \
 	]
