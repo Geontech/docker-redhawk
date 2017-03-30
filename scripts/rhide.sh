@@ -227,11 +227,15 @@ case ${COMMAND} in
 		SDRROOT_CMD="$($DIR/sdrroot-cmd.sh $SDRROOT_VOLUME)"
 
 		# Workspace command
-		WORKSPACE_CMD="-v ${WORKSPACE}:/home/user/redhawk_workspace"
+		WORKSPACE_CMD="-v ${WORKSPACE}:/home/user/workspace"
 
-		# Check if workspace exists.
 		# Container name default is the IDE_${SDRROOT_VOLUME}_${WORKSPACE}
 		CONTAINER_NAME=${CONTAINER_NAME:-IDE_${SDRROOT_VOLUME}_${WORKSPACE}}
+
+		# And if it has any slashes, swap those for dashes :-)
+		CONTAINER_NAME=${CONTAINER_NAME//\//-}
+
+		# Check if such a workspace container exists
 		$DIR/container-running.sh ${CONTAINER_NAME}
 		case $? in
 			0)

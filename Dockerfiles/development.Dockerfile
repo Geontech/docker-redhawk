@@ -40,11 +40,12 @@ RUN useradd \
 	--shell /bin/bash \
 	--groups redhawk \
 	user
-RUN su -m user -c 'mkdir -p /home/user/redhawk_workspace' && \
-	su -m user -c 'mkdir -p /home/user/.eclipse'
+RUN su -m user -c 'mkdir -p /home/user/workspace' && \
+	su -m user -c 'mkdir -p /home/user/.eclipse' && \
+	echo "user 	ALL=(ALL)	NOPASSWD: ALL" >> /etc/sudoers
 
 VOLUME /var/redhawk/sdr
-VOLUME /home/user/redhawk_workspace
+VOLUME /home/user/workspace
 
 # Run the RHIDE init script
 CMD ["/bin/bash", "-l", "-c", "/opt/rhide-init.sh"]

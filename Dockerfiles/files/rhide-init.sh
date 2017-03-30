@@ -27,4 +27,4 @@ chown -R user:redhawk /home/user
 dbus-uuidgen > /etc/machine-id
 
 # Run the IDE
-sudo -Eu user bash -c 'rhide -data /home/user/redhawk_workspace'
+su user -c 'rhide -data ~/workspace'
