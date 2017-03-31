@@ -21,17 +21,19 @@ FROM redhawk/runtime
 MAINTAINER Thomas Goodwin <btgoodwin@geontech>
 LABEL version="2.0.5" description="REDHAWK GPP"
 
-RUN yum install -y \
+RUN yum update -y && yum install -y \
         git \
         protobuf-devel \
         protobuf-python \
-        python-pip \
+        python-dev \
+        curl \
         python-virtualenv
 
-WORKDIR /opt
+# Install and update pip
+RUN curl https://bootstrap.pypa.io/get-pip.py | python && \
+    pip install -U pip
 
-# Update pip
-RUN pip install -U pip
+WORKDIR /opt
 
 # Install the rest-python server
 RUN git clone https://github.com/geontech/rest-python.git && \
