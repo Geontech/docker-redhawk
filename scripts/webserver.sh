@@ -18,7 +18,7 @@
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 #
 
-CONTAINER_NAME=omniserver
+CONTAINER_NAME=webserver
 IMAGE_NAME=redhawk/${CONTAINER_NAME}
 
 # Detect the script's location
@@ -33,14 +33,14 @@ DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 function usage () {
 	cat <<EOF
 
-Usage: $0 start|stop 
-	start|stop       Start or stop the omniserver
+Usage: $0 start|stop [-o|--omni OMNISERVER]
+	start|stop       Start or stop the ${CONTAINER_NAME}
 
 Examples:
-	Status of omniserver:
+	Status of ${CONTAINER_NAME}:
 		$0
 
-	Start the omniserver:
+	Start the ${CONTAINER_NAME}:
 		$0 start
 
 EOF
@@ -50,14 +50,20 @@ function print_status () {
 	$DIR/container-running.sh ${CONTAINER_NAME}
 	case $? in
 	2)
-		echo omniserver does not exist.
+		echo ${CONTAINER_NAME} does not exist.
 		;;
 	1)
-		echo omniserver is not running.
+		echo ${CONTAINER_NAME} is not running.
 		;;
 	*)
-		IP=$($DIR/omniserver-ip.sh)
-		echo omniserver IP address: ${IP}
+		IP=""
+		if [ $? -eq 0 ]; then
+			IP="$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${CONTAINER_NAME})"
+			if [[ $IP == "" ]]; then
+				IP="$(hostname -I | grep -oP '^(\d{1,3}\.?){4}')"
+			fi
+		fi
+		echo ${CONTAINER_NAME} is at: http://${IP}:8080
 		;;
 	esac
 }
@@ -67,6 +73,9 @@ if [ -z ${1+x} ]; then
 	print_status
 	exit 0;
 fi
+
+# Try to detect the omniserver
+OMNISERVER="$($DIR/omniserver-ip.sh)"
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
@@ -79,6 +88,10 @@ while [[ $# -gt 0 ]]; do
 				exit 1
 			fi
 			COMMAND="$1"
+			;;
+		-o|--omni)
+			OMNISERVER="$2"
+			shift
 			;;
 		-h|--help)
 			usage
@@ -111,6 +124,12 @@ fi
 
 # Check the container and the command
 if [[ $COMMAND == "start" ]]; then
+	if [[ $OMNISERVER == "" ]]; then
+		usage
+		echo ERROR: No omniserver running or OmniORB Server IP specified
+		exit 1
+	fi
+
 	$DIR/container-running.sh ${CONTAINER_NAME}
 	if [ $? -eq 0 ]; then
 		echo A ${CONTAINER_NAME} is already running.
@@ -118,6 +137,7 @@ if [[ $COMMAND == "start" ]]; then
 	else
 		echo Starting ${CONTAINER_NAME} ...
 		docker run --rm -d \
+			-e OMNISERVICEIP=${OMNISERVER} \
 			--network host \
 			--name ${CONTAINER_NAME} ${IMAGE_NAME} &> /dev/null
 		

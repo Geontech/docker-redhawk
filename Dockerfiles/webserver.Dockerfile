@@ -48,5 +48,8 @@ RUN git clone https://github.com/geontech/rest-python.git && \
 # Mount point for end-user apps
 VOLUME /opt/rest-python/apps
 
+# Expose the port
+EXPOSE 8080
+
 WORKDIR /opt/rest-python
 CMD [ "/bin/bash", "-l", "-c", "./pyrest.py" ]
