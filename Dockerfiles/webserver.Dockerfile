@@ -21,13 +21,30 @@ FROM redhawk/runtime
 MAINTAINER Thomas Goodwin <btgoodwin@geontech>
 LABEL version="2.0.5" description="REDHAWK GPP"
 
-# TODO: Yum-install/pip-install tornado, etc. for rest-python
+RUN yum install -y \
+        git \
+        protobuf-devel \
+        protobuf-python \
+        python-pip \
+        python-virtualenv
 
 WORKDIR /opt
-# TODO: Clone in rest-python AR/AR2/AR2Kit?
+
+# Update pip
+RUN pip install -U pip
+
+# Install the rest-python server
+RUN git clone https://github.com/geontech/rest-python.git && \
+    cd rest-python && \
+    git checkout develop-2.0-pb2 && \
+    cd protobuf && \
+    protoc * --python_out=../rest/util_pb2 && \
+    cd ../ && \
+    ./setup.sh install && \
+    pip install -r requirements.txt
 
 # Mount point for end-user apps
 VOLUME /opt/rest-python/apps
 
 WORKDIR /opt/rest-python
-CMD [ "/bin/bash", "-l", "-c", "pyrest.py" ]
+CMD [ "/bin/bash", "-l", "-c", "./pyrest.py" ]

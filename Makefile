@@ -23,8 +23,8 @@ runtime := redhawk/runtime
 redhawk_images := \
 	redhawk/development \
 	redhawk/domain \
-	redhawk/gpp
-	# redhawk/webserver \
+	redhawk/gpp \
+	redhawk/webserver \
 	# redhawk/rtl2832u \
 	# redhawk/usrp
 all_images := $(repo) $(omni) $(runtime) $(redhawk_images)
