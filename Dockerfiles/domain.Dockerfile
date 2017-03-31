@@ -26,11 +26,10 @@ RUN yum install -y \
 
 ENV DOMAINNAME ""
 
+ADD files/nodeBooter.sh /root/nodeBooter.sh
+
 VOLUME /var/redhawk/sdr
 
-CMD [\
-	"/bin/bash", "-l", "-c", \
-	"nodeBooter -D --domainname ${DOMAINNAME} &> /opt/nodeBooter.log" \
-	]
+CMD ["/bin/bash", "-c", "/root/nodeBooter.sh -D --domainname $DOMAINNAME"]
 
 

@@ -33,8 +33,7 @@ done
 DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
 CONTAINER_NAME=$1
-DELAY=${2:-2}
-DELAY1=$(expr ${DELAY} + 1)
+DELAY=${2:-10}
 
 $DIR/container-running.sh ${CONTAINER_NAME}
 case $? in
@@ -48,10 +47,11 @@ case $? in
 		;;
 	*)
 		echo Stopping ${CONTAINER_NAME} ...
-		docker stop --time ${DELAY} ${CONTAINER_NAME} &> /dev/null
+		# docker stop --time $DELAY ${CONTAINER_NAME} &> /dev/null
+		docker kill --signal SIGINT ${CONTAINER_NAME} &> /dev/null
 
 		# Verify it stopped
-		sleep ${DELAY1}
+		sleep $DELAY
 		$DIR/container-running.sh ${CONTAINER_NAME}
 		if [ $? -eq 0 ]; then
 			echo Failed to stop ${CONTAINER_NAME}

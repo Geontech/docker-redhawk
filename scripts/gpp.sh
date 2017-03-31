@@ -33,9 +33,13 @@ DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 OMNISERVER="$($DIR/omniserver-ip.sh)"
 
 function print_status() {
-	docker ps -a \
-		--filter="ancestor=${IMAGE_NAME}"\
-		--format="table {{.Names}}\t{{.Status}}"
+	gpps=$(docker ps -a --filter="ancestor=${IMAGE_NAME}" --format="{{.Names}}")
+	printf "%-20s %-20s %-20s\n" "Name" "Domain" "Status"
+	for gpp in $gpps; do
+		domain=$(docker inspect $gpp -f {{.Config.Env}} | grep -oP "DOMAINNAME=\K\w+")
+		status=$(docker inspect $gpp -f {{.State.Status}})
+		printf "%-20s %-20s %-20s\n" $gpp $domain $status
+	done
 }
 
 function usage () {
@@ -172,6 +176,7 @@ if [[ $COMMAND == "start" ]]; then
 				${IMAGE_NAME} &> /dev/null
 
 			# Verify it is running
+			sleep 1
 			$DIR/container-running.sh ${CONTAINER_NAME}
 			if [ $? -gt 0 ]; then
 				echo Failed to start ${CONTAINER_NAME}

@@ -28,7 +28,6 @@ ENV GPPNAME    ""
 ADD files/gpp-node-init.sh /root/gpp-node-init.sh
 RUN echo "/root/gpp-node-init.sh" | tee -a /root/.bashrc
 
-CMD [\
-	"/bin/bash", "-l", "-c", \
-	"nodeBooter -d /nodes/${NODENAME}/DeviceManager.dcd.xml &> /opt/nodeBooter.log" \
-	]
+ADD files/nodeBooter.sh /root/nodeBooter.sh
+
+CMD ["/bin/bash", "-c", "/root/nodeBooter.sh -d /nodes/$NODENAME/DeviceManager.dcd.xml"]

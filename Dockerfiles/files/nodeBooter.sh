@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -l
 # This file is protected by Copyright. Please refer to the COPYRIGHT file
 # distributed with this source distribution.
 #
@@ -19,12 +19,32 @@
 #
 set -e
 
-if ! [ -d $SDRROOT/dev/nodes/${NODENAME} ]; then
-	echo Configuring GPP Node
-	${SDRROOT}/dev/devices/GPP/cpp/gpp_setup \
-		--domainname=${DOMAINNAME} \
-		--nodename=${NODENAME} \
-		--gppname=${GPPNAME}
+handler () {
+	echo "Trapped SIGINT" >> $LOG
+	kill -SIGINT $PID
+	echo "Kill sent, waiting..."
+	sleep 5
+	echo "Delay finished" >> $LOG
+}
+
+LOG=/var/log/nodeBooter.log
+
+echo "Executing: nodeBooter $*" > $LOG
+jobs &> /dev/null
+nodeBooter $* >> $LOG 2>&1 &
+sleep 10
+
+nbjobs="$(jobs -n)"
+if [ -n "$nbjobs" ]; then
+	PID=$!
 else
-	echo GPP Node already configured
+	echo "ERROR: Exiting..." >> $LOG
+	exit 1
 fi
+
+echo "Started process ID: ${PID}" >> $LOG
+
+
+# Trap and wait for the handler
+trap handler SIGINT SIGTERM SIGKILL SIGHUP EXIT
+wait $PID
