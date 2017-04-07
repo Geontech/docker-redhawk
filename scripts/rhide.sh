@@ -181,7 +181,7 @@ case ${COMMAND} in
 		fi
 
 		if ! [ -z ${SDRROOT_VOLUME+x} ]; then
-			$DIR/volume-maanger.sh delete ${SDRROOT_VOLUME}
+			$DIR/volume-manager.sh delete ${SDRROOT_VOLUME}
 		fi
 		;;
 	run)

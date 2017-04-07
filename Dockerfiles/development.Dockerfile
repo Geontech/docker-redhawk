@@ -33,17 +33,6 @@ ADD files/rhide-init.sh /opt/rhide-init.sh
 
 ENV RHUSER_ID 54321
 
-RUN useradd \
-	--system \
-	--uid ${RHUSER_ID} \
-	--create-home \
-	--shell /bin/bash \
-	--groups redhawk \
-	user
-RUN su -m user -c 'mkdir -p /home/user/workspace' && \
-	su -m user -c 'mkdir -p /home/user/.eclipse' && \
-	echo "user 	ALL=(ALL)	NOPASSWD: ALL" >> /etc/sudoers
-
 VOLUME /var/redhawk/sdr
 VOLUME /home/user/workspace
 

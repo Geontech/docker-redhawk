@@ -18,9 +18,14 @@
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 #
 
-# Change generic user's ID to the external user's
-# so that everything in the workspace is owned by the host's user ID
-usermod -u ${RHUSER_ID} user
+# Create user with external user's ID
+useradd --system \
+	--uid ${RHUSER_ID} \
+	--shell /bin/bash \
+	--groups redhawk \
+	user
+echo "user 	ALL=(ALL)	NOPASSWD: ALL" >> /etc/sudoers
+
 chown -R user:redhawk /home/user
 
 # Generate machine id
