@@ -61,8 +61,7 @@ function print_status_for_volumes() {
 	if ! [ -z ${2+x} ]; then
 		ancestor="--filter ancestor=$2"
 	fi
-	volumes=($1)
-	for volume in ${volumes[@]}; do
+	for volume in $1; do
 		containers=$(docker ps -a --filter volume=$volume $ancestor --format="{{.Names}}")
 		if [[ ${containers} == "" ]]; then
 			echo "$volume is not mounted."
@@ -83,10 +82,10 @@ ${volumes}
 
 EOF
 	echo Domains:
-	print_status_for_volumes "$volumes" redhawk/domain
+	print_status_for_volumes $volumes redhawk/domain
 	echo ""
 	echo Development/IDEs:
-	print_status_for_volumes "$volumes" redhawk/development
+	print_status_for_volumes $volumes redhawk/development
 }
 
 function print_status_workspace () {
@@ -99,7 +98,7 @@ ${volumes}
 EOF
 
 	echo Development/IDEs:
-	print_status_for_volumes "$volumes" redhawk/development
+	print_status_for_volumes $volumes redhawk/development
 }
 
 function print_status () {
