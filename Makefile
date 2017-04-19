@@ -25,11 +25,12 @@ redhawk_images := \
 	redhawk/domain \
 	redhawk/gpp \
 	redhawk/webserver \
+        redhawk/usrp
 	# redhawk/rtl2832u \
 	# redhawk/usrp
 all_images := $(repo) $(omni) $(runtime) $(redhawk_images)
 
-linked_scripts := omniserver domain sdrroot login gpp rhide volume-manager webserver
+linked_scripts := omniserver domain sdrroot login gpp rhide volume-manager webserver usrp
 
 # Macros for querying an image vs. building one.
 image_check = $(strip $(shell docker images -q $1))

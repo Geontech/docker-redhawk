@@ -22,52 +22,71 @@ MAINTAINER Thomas Goodwin <btgoodwin@geontech>
 LABEL version="2.0.5" description="REDHAWK USRP_UHD -based Node w/ up-to-date UHD"
 
 # Remove old UHD and USRP_UHD
-RUN yum remove -y \
-		rh.USRP_UHD* \
-		uhd-* \
-		uhd.x86_64 && \
-	yum install -y \
-		cmake \
-		doxygen \
-		python-pip \
-		git
-RUN pip install --upgarde pip && \
-    pip install --upgrade mako && \
-    pip install --upgrade requests
+RUN yum update -y && \
+    yum install -y \
+        autoconf \
+        automake \
+        cmake \
+        doxygen \
+        python-pip \
+        git \
+        g++ \
+        boost-devel \
+        libusb1-devel \
+        gpsd-devel \
+        python-mako \
+        python-requests \
+        python-docutils \
+        gcc \
+        gcc-c++ \
+        e2fsprogs-devel \
+        rpm-build   
 
 # compile the up-to-date verison of UHD
+
 RUN git clone git://github.com/EttusResearch/uhd.git && \
-	mkdir -p uhd/host/build && \
-	cd uhd/host/build && \
-	cmake ../ && \
-	make test && \
-	make install && \
-	cd ../../../ && \
-	rm -rf uhd && \
-	ldconfig
+    mkdir -p uhd/host/build && \
+    cd uhd/host/build && \
+    cmake ../ && \
+    make && \
+    make test && \
+    make install && \
+    ldconfig && \
+    cpack ../
 
 # compile up-to-date version of USRP_UHD
-RUN git clone git://github.com/RedhawkSDR/USRP_UHD.git && \
-	cd USRP_UHD && \
-	git checkout tags/4.0.1 && \
-	./build.sh && \
-	./build.sh install && \
-	cd ../ \
-	rm -rf USRP_UHD
+
+RUN cd uhd/host/build/ && \
+    yum localinstall -y uhd*.rpm && \
+    ldconfig 
+
+RUN source /etc/profile.d/redhawk.sh && \
+    source /etc/profile.d/redhawk-sdrroot.sh && \
+    git clone git://github.com/RedhawkSDR/USRP_UHD.git && \
+    cd USRP_UHD && \
+    git checkout tags/4.0.1 && \
+    ./build.sh && \
+    ./build.sh install
 
 
 ENV DOMAINNAME      ""
+ENV NODENAME        ""
 ENV USRP_IP_ADDRESS ""
+ENV USRP_TYPE       ""
 ENV USRP_NAME       ""
 ENV USRP_SERIAL     ""
-ENV NODENAME        ""
 
-ENTRYPOINT [\
-	"/bin/bash", "-l", "-c", \
-	"${SDRROOT}/dev/devices/rh/USRP_UHD/nodeconfig.py --domainname=${DOMAINNAME} --nodename=${NODENAME} --noinplace --usrpproduct=${USRP_IP_ADDRESS} --usrpname=${USRP_NAME} --usrpserial=${USRP_SERIAL}" \
-	]
+# Add script for configuring the node
+ADD files/usrp-node-init.sh /root/usrp-node-init.sh
+RUN echo "/root/usrp-node-init.sh" | tee -a /root/.bashrc
 
-CMD [\
-	"/bin/bash", "-l", "-c", \
-	"nodeBooter -d /nodes/${NODENAME}/DeviceManager.dcd.xml" \
-	]
+# Add the nodeBooter script
+ADD files/nodeBooter.sh /root/nodeBooter.sh
+
+# Add call to uhd_images_downloader to pick up the latest images both now and
+# update them on container start.
+RUN /usr/local/lib64/uhd/utils/uhd_images_downloader.py && \
+    echo "/usr/local/lib64/uhd/utils/uhd_images_downloader.py" | tee -a /root/.bashrc
+
+# Call uhd_find_devices then run the nodeBooter wrapper
+CMD ["/bin/bash", "-c", "uhd_find_devices && /root/nodeBooter.sh -d /nodes/$NODENAME/DeviceManager.dcd.xml"]
