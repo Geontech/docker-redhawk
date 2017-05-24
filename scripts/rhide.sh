@@ -51,7 +51,8 @@ OMNISERVER="$($DIR/omniserver-ip.sh)"
 function usage () {
 	cat <<EOF
 
-Usage: $0 create|delete|run ...
+Usage: $0 create|delete options...
+       $0 run (NAME, optional) options...
 	[create|delete|run]             Create/Delete or Run with the volume(s) 
 	                                specified
 	[-s|--sdrroot   SDRROOT_VOLUME] SDRROOT Volume Name
@@ -95,7 +96,7 @@ fi
 while [[ $# -gt 0 ]]; do
 	key="$1"
 	case $key in
-		create|delete|run)
+		create|delete)
 			if ! [ -z ${COMMAND+x} ]; then
 				usage
 				echo ERROR: The create, delete, and run commands are mutually exclusive.
@@ -103,20 +104,33 @@ while [[ $# -gt 0 ]]; do
 			fi
 			COMMAND="$1"
 			;;
+		run)
+			if ! [ -z ${COMMAND+x} ]; then
+				usage
+				echo ERROR: The create, delete, and run commands are mutually exclusive.
+				exit 1
+			fi
+			COMMAND="$1"
+
+			if ! [ -z ${2} ] && ! [[ ${2:0:1} == '-' ]]; then
+				CONTAINER_NAME="${2}"
+				shift
+			fi
+			;;
 		-s|--sdrroot)
-			SDRROOT_VOLUME="$2"
+			SDRROOT_VOLUME="${2:?Missing SDRROOT_VOLUME Argument}"
 			shift
 			;;
 		-w|--workspace)
-			WORKSPACE="$2"
+			WORKSPACE="${2:?Missing WORKSPACE Argument}"
 			shift
 			;;
 		-o|--omni)
-			OMNISERVER="$2"
+			OMNISERVER="${2:?Missing OMNISERVER Argument}"
 			shift
 			;;
 		-n|--name)
-			CONTAINER_NAME="$2"
+			CONTAINER_NAME="${2:?Missing CONTAINER_NAME Argument}"
 			shift
 			;;
 		-h|--help)

@@ -18,20 +18,37 @@
 #
 
 FROM centos:7
-MAINTAINER Thomas Goodwin <btgoodwin@geontech>
-LABEL version="2.0.5" description="CentOS 7 with REDHAWK repo and omni services configuration"
 
+ENV RH_VERSION=2.0.5
 
-# Update, load EPEL, make a repo directory for REDHAWK
+LABEL name="REDHAWK SDR Base Image" \
+    license="GPLv3" \
+    description="REDHAWK SDR repository, omni services, and EPEL)" \
+    maintainer="Thomas Goodwin <btgoodwin@geontech.com>" \
+    version="${RH_VERSION}" \
+    vendor="Geon Technologies, LLC"
+
+# Update, epel, etc. and omni services as well as upgraded pyparsing
 RUN yum update -y && \
     yum install -y \
-    	wget \
-        https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+    python-dev \
+    curl \
+    wget \
+    epel-release \
+    http://cbs.centos.org/kojifiles/packages/pyparsing/2.0.3/1.el7/noarch/pyparsing-2.0.3-1.el7.noarch.rpm
+
+# Add Supervisord and default configuration
+RUN curl https://bootstrap.pypa.io/get-pip.py | python
+RUN pip install --upgrade pip && \
+    pip install --upgrade supervisor && \
+    mkdir -p /etc/supervisor.d && \
+    mkdir -p /var/log/supervisord
+ADD files/supervisord.conf /etc/supervisor/supervisord.conf
 
 # Load the REDHAWK repo
 ADD files/repo-installer.sh /opt
 WORKDIR /opt
-RUN RH_VERSION=2.0.5 /opt/repo-installer.sh
+RUN bash ./repo-installer.sh && rm ./repo-installer.sh
 
 # Install omni services and add event service to config
 RUN yum update -y && yum install -y omniORB-servers omniEvents-server && \
@@ -40,8 +57,8 @@ RUN yum update -y && yum install -y omniORB-servers omniEvents-server && \
 # IP address for omni services and an auto-configure script
 ENV OMNISERVICEIP 127.0.0.1
 ADD files/omnicfg-updater.sh /root/omnicfg-updater.sh
-RUN echo "/root/omnicfg-updater.sh" | tee -a /root/.bashrc | tee -a /root/.bash_profile
+RUN chmod u+x /root/omnicfg-updater.sh && echo "/root/omnicfg-updater.sh" | tee -a /root/.bash_profile
+
+WORKDIR /root
 
 CMD ["/bin/bash", "-l"]
-
-

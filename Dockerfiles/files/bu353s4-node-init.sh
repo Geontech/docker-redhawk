@@ -1,4 +1,4 @@
-#!/bin/bash -l
+#!/bin/bash
 # This file is protected by Copyright. Please refer to the COPYRIGHT file
 # distributed with this source distribution.
 #
@@ -19,32 +19,17 @@
 #
 set -e
 
-handler () {
-	echo "Trapped SIGINT" >> $LOG
-	kill -SIGINT $PID
-	echo "Kill sent, waiting..."
-	sleep 5
-	echo "Delay finished" >> $LOG
+function print_option() {
+	printf " ---> %-20s %-20s\n" $1 $2
 }
 
-LOG=/var/log/nodeBooter.log
+BU353S4_CONFIG_ARGS="--noinplace --domainname=${DOMAINNAME} --nodename=${NODENAME} --serialport=${GPS_PORT}"
 
-echo "Executing: nodeBooter $*" > $LOG
-jobs &> /dev/null
-nodeBooter $* >> $LOG 2>&1 &
-sleep 10
+if ! [ -d $SDRROOT/dev/nodes/${NODENAME} ]; then
+	echo Configuring BU353S4 Node
 
-nbjobs="$(jobs -n)"
-if [ -n "$nbjobs" ]; then
-	PID=$!
+	${SDRROOT}/dev/devices/BU353S4/nodeconfig.py ${BU353S4_CONFIG_ARGS}
 else
-	echo "ERROR: Exiting..." >> $LOG
-	exit 1
+	echo BU353S4 Node already configured
 fi
 
-echo "Started process ID: ${PID}" >> $LOG
-
-
-# Trap and wait for the handler
-trap handler SIGINT SIGTERM SIGKILL SIGHUP EXIT
-wait $PID

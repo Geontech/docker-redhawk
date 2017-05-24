@@ -33,7 +33,7 @@ done
 DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
 CONTAINER_NAME=$1
-DELAY=${2:-10}
+DELAY=${2:-5}
 
 $DIR/container-running.sh ${CONTAINER_NAME}
 case $? in

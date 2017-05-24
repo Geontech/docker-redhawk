@@ -23,6 +23,7 @@ echo RH_VERSION: "${RH_VERSION:?Need to set RH_VERSION}"
 
 wget https://github.com/RedhawkSDR/redhawk/releases/download/${RH_VERSION}/redhawk-yum-${RH_VERSION}-el7-x86_64.tar.gz
 tar xzf redhawk-yum-${RH_VERSION}-el7-x86_64.tar.gz
+rm redhawk-yum-${RH_VERSION}-el7-x86_64.tar.gz
 mv redhawk-${RH_VERSION}-el7-x86_64 redhawk-yum
 pushd redhawk-yum
 

@@ -17,13 +17,15 @@
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 #
 
-FROM redhawk/runtime
-MAINTAINER Thomas Goodwin <btgoodwin@geontech>
-LABEL version="2.0.5" description="REDHAWK USRP_UHD -based Node w/ up-to-date UHD"
+FROM redhawk/runtime:2.0.5
+LABEL name="REDHAWK SDR USRP_UHD Device" \
+    description="REDHAWK USRP_UHD w/ updated UHD driver version (3.10)" \
+    maintainer="Thomas Goodwin <btgoodwin@geontech.com>"
 
 # Remove old UHD and USRP_UHD
 RUN yum update -y && \
     yum install -y \
+        redhawk-devel \
         autoconf \
         automake \
         cmake \
@@ -47,6 +49,7 @@ RUN yum update -y && \
 RUN git clone git://github.com/EttusResearch/uhd.git && \
     mkdir -p uhd/host/build && \
     cd uhd/host/build && \
+    git checkout release_003_010_001_001 && \
     cmake ../ && \
     make && \
     make test && \
@@ -78,15 +81,11 @@ ENV USRP_SERIAL     ""
 
 # Add script for configuring the node
 ADD files/usrp-node-init.sh /root/usrp-node-init.sh
-RUN echo "/root/usrp-node-init.sh" | tee -a /root/.bashrc
+RUN chmod u+x /root/usrp-node-init.sh && echo "/root/usrp-node-init.sh" | tee -a /root/.bashrc
 
-# Add the nodeBooter script
-ADD files/nodeBooter.sh /root/nodeBooter.sh
+# Add call to uhd_images_downloader to pick up the latest images when the container starts
+RUN echo "/usr/local/lib64/uhd/utils/uhd_images_downloader.py" | tee -a /root/.bashrc
 
-# Add call to uhd_images_downloader to pick up the latest images both now and
-# update them on container start.
-RUN /usr/local/lib64/uhd/utils/uhd_images_downloader.py && \
-    echo "/usr/local/lib64/uhd/utils/uhd_images_downloader.py" | tee -a /root/.bashrc
-
-# Call uhd_find_devices then run the nodeBooter wrapper
-CMD ["/bin/bash", "-c", "uhd_find_devices && /root/nodeBooter.sh -d /nodes/$NODENAME/DeviceManager.dcd.xml"]
+# USRP Supervisord script
+ADD files/supervisord-usrp.conf /etc/supervisor.d/usrp.conf
+CMD ["/usr/bin/supervisord"]

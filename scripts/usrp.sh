@@ -34,32 +34,31 @@ OMNISERVER="$($DIR/omniserver-ip.sh)"
 
 function print_status() {
 	usrps=$(docker ps -a --filter="ancestor=${IMAGE_NAME}" --format="{{.Names}}")
-	printf "%-20s %-20s %-20s\n" "Name" "Domain" "Status"
+	printf "%-40s %-20s\n" "Name" "Domain" "Status"
 	for usrp in $usrps; do
-		domain=$(docker inspect $usrp -f {{.Config.Env}} | grep -oP "DOMAINNAME=\K\w+")
 		status=$(docker inspect $usrp -f {{.State.Status}})
-		printf "%-20s %-20s %-20s\n" $usrp $domain $status
+		printf "%-40s %-20s\n" $usrp $status
 	done
 }
 
 function usage () {
 	cat <<EOF
 
-Usage: $0 start|stop
-	[-u|--usrp    USRP_NAME]   USRP Device name, default is USRP_[UUID]
-	[-n|--node    NODE_NAME]   Node Name, Defaults to DevMgr_USRP_NAME
+Usage: $0 start|stop NODE_NAME
+	[-u|--usrp]   USRP_NAME]   Name for the USRP Device (default: USRP_UHD_...)
 	[-d|--domain  DOMAIN_NAME] Domain Name, default is REDHAWK_DEV
 	[-o|--omni    OMNISERVER]  IP to the OmniServer (detected: ${OMNISERVER})
 	[--usrptype   USRP_TYPE]   USRP type according to UHD (b200, etc., optional)
 	[--usrpserial USRP_SERIAL] USRP Serial number for UHD (optional)
 	[--usrpip     USRP_IP]     USRP IP Address (for networked devices, optional)
-	[--usrpusb    USRP_USB]    USB Device expose to the container (/dev/bus/usb/xxx/yyy)
 	[--list-usb]               Print list of possible USB USRPs
 	[-p|--print]               Print resolved settings
 
 Examples:
 	Start or stop a node:
-		$0 start|stop --node DevMgr_MyUSRP --domain REDHAWK_TEST2
+		$0 start|stop DevMgr_MyUSRP --domain REDHAWK_TEST2
+
+		# Results in a container: DevMgr_MyUSRP-REDHAWK_TEST2
 
 	Status of all locally-running ${IMAGE_NAME} instances:
 		$0
@@ -103,13 +102,18 @@ while [[ $# -gt 0 ]]; do
 				exit 1
 			fi
 			COMMAND="$1"
+
+			if [ -z ${2} ] || [[ ${2:0:1} == '-' ]]; then
+				usage
+				echo ERROR: The next argument after the command must be the name.
+				exit 1
+			else
+				NODE_NAME="${2}"
+				shift
+			fi
 			;;
 		-u|--usrp)
 			USRP_NAME="$2"
-			shift
-			;;
-		-n|--node)
-			NODE_NAME="$2"
 			shift
 			;;
 		-d|--domain)
@@ -136,10 +140,6 @@ while [[ $# -gt 0 ]]; do
 			USRP_IP="$2"
 			shift
 			;;
-		--usrpusb)
-			USRP_USB="$2"
-			shift
-			;;
 		--list-usb)
 			list_usb_devices
 			exit 0
@@ -163,57 +163,23 @@ if [ -z ${COMMAND+x} ]; then
 fi
 
 # Enforce defaults
-USRP_NAME=${USRP_NAME:-USRP_$(uuidgen)}
-NODE_NAME=${NODE_NAME:-DevMgr_${USRP_NAME}}
+USRP_NAME=${USRP_NAME:-USRP_UHD_$(uuidgen)}
 DOMAIN_NAME=${DOMAIN_NAME:-REDHAWK_DEV}
 
 if ! [ -z ${JUST_PRINT+x} ]; then
 	cat <<EOF
 Resolved Settings:
 	COMMAND:      ${COMMAND}
-	USRP_NAME:    ${USRP_NAME}
 	NODE_NAME:    ${NODE_NAME}
+	USRP_NAME:    ${USRP_NAME}
 	DOMAIN_NAME:  ${DOMAIN_NAME}
 	USRP_TYPE:    ${USRP_TYPE:-Not Specified}
 	USRP_SERIAL:  ${USRP_SERIAL:-Not Specified}
 	USRP_IP:      ${USRP_IP:-Not Specified}
-	USRP_USB:     ${USRP_USB:-Not Specified}
 	OMNISERVER:   ${OMNISERVER:-Not Specified}
 EOF
 	exit 0
 fi
-
-# Verify at least one of the usrp options has been set
-if [ -z ${USRP_TYPE+x} ] && [ -z ${USRP_SERIAL+x} ] && [ -z ${USRP_IP+x} ] && [ -z ${USRP_USB+x} ]; then
-	usage
-	echo ERROR: At least one of the --usrp... options must be specified to find the device
-	exit 1
-fi
-
-# If usrptype is b100, b200, the USB option must be set.
-case ${USRP_TYPE} in
-	b100) ;&
-	b200)
-		if [ -z ${USRP_USB+x} ]; then
-			echo ERROR: The USB path must be specified.
-			list_usb_devices
-			exit 1
-		fi
-		;;
-	e100) ;&
-	e300)
-		echo You should consider running REDHAWK on the device instead
-		echo using meta-redhawk-sdr, for example.
-		;&
-	*)
-		# Assuming the rest are networkable
-		if [ -z ${USRP_IP+x} ]; then
-			echo ERROR: Networked USRPs must be specified with an IP address
-			exit 1
-		fi
-		;;
-
-esac
 
 # Check if the image is installed yet, if not, build it.
 $DIR/image-exists.sh ${IMAGE_NAME}
@@ -225,7 +191,7 @@ if [ $? -gt 0 ]; then
 fi
 
 # The container name will be the node name
-CONTAINER_NAME=${NODE_NAME}
+CONTAINER_NAME=${NODE_NAME}-${DOMAIN_NAME}
 
 # Handle the command
 if [[ $COMMAND == "start" ]]; then
@@ -234,6 +200,35 @@ if [[ $COMMAND == "start" ]]; then
 		echo ERROR: No omniserver running or OmniORB Server IP specified
 		exit 1
 	fi
+
+	# Verify at least one of the usrp options has been set
+	if [ -z ${USRP_TYPE+x} ] && [ -z ${USRP_SERIAL+x} ] && [ -z ${USRP_IP+x} ] ]; then
+		usage
+		echo ERROR: At least one of the --usrp... options must be specified to find the device
+		exit 1
+	fi
+
+	# If usrptype is b100, b200, the USB option must be set.
+	USB_DEVIC=""
+	case ${USRP_TYPE} in
+		b100) ;&
+		b200)
+			USB_DEVICE="-v /dev/bus/usb:/dev/bus/usb --privileged"
+			;;
+		e100) ;&
+		e300)
+			echo You should consider running REDHAWK on the device instead
+			echo using meta-redhawk-sdr, for example.
+			;&
+		*)
+			# Assuming the rest are networkable
+			if [ -z ${USRP_IP+x} ]; then
+				echo ERROR: Networked USRPs must be specified with an IP address
+				exit 1
+			fi
+			;;
+	esac
+
 	$DIR/container-running.sh ${CONTAINER_NAME}
 	case $? in
 		1)
@@ -248,18 +243,11 @@ if [[ $COMMAND == "start" ]]; then
 			# Does not exist (expected), create it.
 			echo Connecting to omniserver: $OMNISERVER
 
-			# USB argument
-			USB_DEVICE=""
-			if [ ! -z ${USRP_USB} ]; then
-				USB_DEVICE="--device=${USRP_USB} --privileged=true"
-			fi
-
-			# docker run -it \ 
 			docker run --rm -d \
-			    -e USRPNAME=${USRP_NAME} \
 			    -e NODENAME=${NODE_NAME} \
 			    -e DOMAINNAME=${DOMAIN_NAME} \
 			    -e OMNISERVICEIP=${OMNISERVER} \
+			    -e USRP_NAME=${USRP_NAME} \
 			    -e USRP_TYPE=${USRP_TYPE:-} \
 			    -e USRP_IP=${USRP_IP:-} \
 			    -e USRP_SERIAL=${USRP_SERIAL:-} \

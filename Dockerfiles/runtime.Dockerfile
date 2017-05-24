@@ -17,14 +17,12 @@
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 #
 
-FROM redhawk/base
-MAINTAINER Thomas Goodwin <btgoodwin@geontech>
-LABEL version="2.0.5" description="CentOS 7 with REDHAWK Runtime"
+FROM redhawk/base:2.0.5
+LABEL name="REDHAWK SDR Runtime" \
+    description="REDHAWK SDR Runtime dependencies"
 
 # Install REDHAWK Runtime
 RUN yum update -y && \
 	yum groupinstall -y "REDHAWK Runtime"
 
 CMD ["/bin/bash", "-l"]
-
-

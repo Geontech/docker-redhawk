@@ -17,19 +17,14 @@
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 #
 
-FROM redhawk/runtime
-MAINTAINER Thomas Goodwin <btgoodwin@geontech>
-LABEL version="2.0.5" description="REDHAWK Domain"
+FROM redhawk/runtime:2.0.5
+LABEL name="REDHAWK SDR Domain" \
+    description="REDHAWK SDR Domain Runner"
 
-RUN yum install -y \
-	redhawk-basic-components
+RUN yum install -y redhawk-basic-components
+VOLUME /var/redhawk/sdr
 
 ENV DOMAINNAME ""
 
-ADD files/nodeBooter.sh /root/nodeBooter.sh
-
-VOLUME /var/redhawk/sdr
-
-CMD ["/bin/bash", "-c", "/root/nodeBooter.sh -D --domainname $DOMAINNAME"]
-
-
+ADD files/supervisord-domain.conf /etc/supervisor.d/domain.conf
+CMD ["/usr/bin/supervisord"]

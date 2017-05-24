@@ -18,7 +18,7 @@
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 #
 
-IMAGE_NAME=redhawk/gpp
+IMAGE_NAME=redhawk/bu353s4
 
 # Detect the script's location
 SOURCE="${BASH_SOURCE[0]}"
@@ -33,11 +33,11 @@ DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 OMNISERVER="$($DIR/omniserver-ip.sh)"
 
 function print_status() {
-	gpps=$(docker ps -a --filter="ancestor=${IMAGE_NAME}" --format="{{.Names}}")
+	gpss=$(docker ps -a --filter="ancestor=${IMAGE_NAME}" --format="{{.Names}}")
 	printf "%-40s %-20s\n" "Name" "Status"
-	for gpp in $gpps; do
-		status=$(docker inspect $gpp -f {{.State.Status}})
-		printf "%-40s %-20s\n" $gpp $status
+	for gps in $gpss; do
+		status=$(docker inspect $gps -f {{.State.Status}})
+		printf "%-40s %-20s\n" $gps $status
 	done
 }
 
@@ -45,16 +45,16 @@ function usage () {
 	cat <<EOF
 
 Usage: $0 start|stop NODE_NAME (options)
-	[-g|--gpp    GPP_NAME]    GPP Device name, default is GPP_[UUID]
-	[-d|--domain DOMAIN_NAME] Domain Name, default is REDHAWK_DEV
-	[-o|--omni   OMNISERVER]  IP to the OmniServer (detected: ${OMNISERVER})
-	[-p|--print]              Just print resolved settings
+	[-s|--serialport SERIAL_PORT] Serial Port for the GPS, default is /dev/ttyUSB0
+	[-d|--domain     DOMAIN_NAME] Domain Name, default is REDHAWK_DEV
+	[-o|--omni       OMNISERVER]  IP to the OmniServer (detected: ${OMNISERVER})
+	[-p|--print]                  Just print resolved settings
 
 Examples:
 	Start or stop a node:
-		$0 start|stop DevMgr_MyGPP --domain REDHAWK_TEST2
+		$0 start|stop DevMgr_MyGPS
 
-		# Results in a container: DevMgr_MyGPP-REDHAWK_TEST2
+		# Results in a container: DevMgr_MyGPS-REDHAWK_DEV
 
 	Status of all locally-running ${IMAGE_NAME} instances:
 		$0
@@ -88,8 +88,8 @@ while [[ $# -gt 0 ]]; do
 				shift
 			fi
 			;;
-		-g|--gpp)
-			GPP_NAME="${2:?Missing GPP_NAME Argument}"
+		-s|--serialport)
+			SERIAL_PORT="${2:?Missing SERIAL_PORT Argument}"
 			shift
 			;;
 		-d|--domain)
@@ -123,14 +123,14 @@ if [ -z ${COMMAND+x} ]; then
 fi
 
 # Enforce defaults
-GPP_NAME=${GPP_NAME:-GPP_$(uuidgen)}
+SERIAL_PORT=${SERIAL_PORT:-/dev/ttyUSB0}
 DOMAIN_NAME=${DOMAIN_NAME:-REDHAWK_DEV}
 
 if ! [ -z ${JUST_PRINT+x} ]; then
 	cat <<EOF
 Resolved Settings:
 	COMMAND:      ${COMMAND}
-	GPP_NAME:     ${GPP_NAME}
+	SERIAL_PORT:  ${SERIAL_PORT}
 	NODE_NAME:    ${NODE_NAME}
 	DOMAIN_NAME:  ${DOMAIN_NAME}
 	OMNISERVER:   ${OMNISERVER:-None Specified}
@@ -171,10 +171,12 @@ if [[ $COMMAND == "start" ]]; then
 			# Does not exist (expected), create it.
 			echo Connecting to omniserver: $OMNISERVER
 			docker run --rm -d \
-			    -e GPPNAME=${GPP_NAME} \
+			    -e GPS_PORT=${SERIAL_PORT} \
 			    -e NODENAME=${NODE_NAME} \
 			    -e DOMAINNAME=${DOMAIN_NAME} \
 			    -e OMNISERVICEIP=${OMNISERVER} \
+			    -v ${SERIAL_PORT}:${SERIAL_PORT} \
+			    --privileged \
 			    --net host \
 				--name ${CONTAINER_NAME} \
 				${IMAGE_NAME} &> /dev/null

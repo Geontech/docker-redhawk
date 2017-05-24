@@ -35,6 +35,8 @@ function usage () {
 
 Usage: $0 start|stop [-o|--omni OMNISERVER]
 	start|stop       Start or stop the ${CONTAINER_NAME}
+	-p|--port        The port for the server to use (default is 8080)
+	--rest-python    Path to alternate REST-Python instance to use
 
 Examples:
 	Status of ${CONTAINER_NAME}:
@@ -90,7 +92,15 @@ while [[ $# -gt 0 ]]; do
 			COMMAND="$1"
 			;;
 		-o|--omni)
-			OMNISERVER="$2"
+			OMNISERVER="${2:?Missing OMNISERVER Argument}"
+			shift
+			;;
+		-p|--port)
+			REST_PYTHON_PORT="${2:?Missing REST_PYTHON_PORT Argument}"
+			shift
+			;;
+		--rest-python)
+			REST_PYTHON_VOLUME="-v ${2:?Missing REST_PYTHON_VOLUME Argument}:/opt/rest-python"
 			shift
 			;;
 		-h|--help)
@@ -111,6 +121,9 @@ if [ -z ${COMMAND+x} ]; then
 	echo ERROR: No command specified \(start or stop\)
 	exit 1
 fi
+
+REST_PYTHON_VOLUME=${REST_PYTHON_VOLUME:-}
+REST_PYTHON_PORT=${REST_PYTHON_PORT:-8080}
 
 
 # Check if the image is installed yet, if not, build it.
@@ -138,6 +151,8 @@ if [[ $COMMAND == "start" ]]; then
 		echo Starting ${CONTAINER_NAME} ...
 		docker run --rm -d \
 			-e OMNISERVICEIP=${OMNISERVER} \
+			-e REST_PYTHON_PORT=${REST_PYTHON_PORT} \
+			${REST_PYTHON_VOLUME} \
 			--network host \
 			--name ${CONTAINER_NAME} ${IMAGE_NAME} &> /dev/null
 		

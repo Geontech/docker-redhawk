@@ -17,17 +17,17 @@
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 #
 
-FROM redhawk/runtime
-MAINTAINER Thomas Goodwin <btgoodwin@geontech>
-LABEL version="2.0.5" description="REDHAWK GPP"
+FROM redhawk/runtime:2.0.5
+LABEL version="2.0.5" \
+    description="REDHAWK GPP Runner" \
+    maintainer="Thomas Goodwin <btgoodwin@geontech.com>"
 
 ENV DOMAINNAME ""
 ENV NODENAME   ""
 ENV GPPNAME    ""
 
 ADD files/gpp-node-init.sh /root/gpp-node-init.sh
-RUN echo "/root/gpp-node-init.sh" | tee -a /root/.bashrc
+RUN chmod u+x /root/gpp-node-init.sh && echo "/root/gpp-node-init.sh" | tee -a /root/.bashrc
 
-ADD files/nodeBooter.sh /root/nodeBooter.sh
-
-CMD ["/bin/bash", "-c", "/root/nodeBooter.sh -d /nodes/$NODENAME/DeviceManager.dcd.xml"]
+ADD files/supervisord-device.conf /etc/supervisor.d/device.conf
+CMD ["/usr/bin/supervisord"]

@@ -18,7 +18,7 @@
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 #
 
-IMAGE_NAME=redhawk/gpp
+IMAGE_NAME=redhawk/rtl2832u
 
 # Detect the script's location
 SOURCE="${BASH_SOURCE[0]}"
@@ -33,28 +33,30 @@ DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 OMNISERVER="$($DIR/omniserver-ip.sh)"
 
 function print_status() {
-	gpps=$(docker ps -a --filter="ancestor=${IMAGE_NAME}" --format="{{.Names}}")
+	rtls=$(docker ps -a --filter="ancestor=${IMAGE_NAME}" --format="{{.Names}}")
 	printf "%-40s %-20s\n" "Name" "Status"
-	for gpp in $gpps; do
-		status=$(docker inspect $gpp -f {{.State.Status}})
-		printf "%-40s %-20s\n" $gpp $status
+	for rtl in $rtls; do
+		status=$(docker inspect $rtl -f {{.State.Status}})
+		printf "%-40s %-20s\n" $rtl $status
 	done
 }
 
 function usage () {
 	cat <<EOF
 
-Usage: $0 start|stop NODE_NAME (options)
-	[-g|--gpp    GPP_NAME]    GPP Device name, default is GPP_[UUID]
-	[-d|--domain DOMAIN_NAME] Domain Name, default is REDHAWK_DEV
-	[-o|--omni   OMNISERVER]  IP to the OmniServer (detected: ${OMNISERVER})
-	[-p|--print]              Just print resolved settings
+Usage: $0 start|stop NODE_NAME
+	[-d|--domain  DOMAIN_NAME] Domain Name, default is REDHAWK_DEV
+	[-o|--omni    OMNISERVER]  IP to the OmniServer (detected: ${OMNISERVER})
+	[--rtlname    RTL_NAME]    RTL2832U Device name (optional)
+	[--rtlvendor  RTL_VENDOR]  RTL Vendor Name (optional)
+	[--rtlproduct RTL_PRODUCT] RTL Product Name (optional)
+	[--rtlserial  RTL_SERIAL]  RTL Serial number (optional)
+	[--rtlindex   RTL_INDEX]   RTL Device Index (optional)
+	[-p|--print]               Print resolved settings
 
 Examples:
 	Start or stop a node:
-		$0 start|stop DevMgr_MyGPP --domain REDHAWK_TEST2
-
-		# Results in a container: DevMgr_MyGPP-REDHAWK_TEST2
+		$0 start|stop DevMgr_MyRTL --domain REDHAWK_TEST2
 
 	Status of all locally-running ${IMAGE_NAME} instances:
 		$0
@@ -88,10 +90,6 @@ while [[ $# -gt 0 ]]; do
 				shift
 			fi
 			;;
-		-g|--gpp)
-			GPP_NAME="${2:?Missing GPP_NAME Argument}"
-			shift
-			;;
 		-d|--domain)
 			DOMAIN_NAME="${2:?Missing DOMAIN_NAME Argument}"
 			shift
@@ -103,6 +101,26 @@ while [[ $# -gt 0 ]]; do
 		-h|--help)
 			usage
 			exit 0
+			;;
+		--rtlname)
+			RTL_NAME="${2:?Missing RTL_NAME Argument}"
+			shift
+			;;
+		--rtlvendor)
+			RTL_VENDOR="${2:?Missing RTL_VENDOR Argument}"
+			shift
+			;;
+		--rtlproduct)
+			RTL_PRODUCT="${2:?Missing RTL_PRODUCT Argument}"
+			shift
+			;;
+		--rtlserial)
+			RTL_SERIAL="${2:?Missing RTL_SERIAL Argument}"
+			shift
+			;;
+		--rtlindex)
+			RTL_INDEX="${2:?Missing RTL_INDEX Argument}"
+			shift
 			;;
 		-p|--print)
 			JUST_PRINT=YES
@@ -123,17 +141,20 @@ if [ -z ${COMMAND+x} ]; then
 fi
 
 # Enforce defaults
-GPP_NAME=${GPP_NAME:-GPP_$(uuidgen)}
 DOMAIN_NAME=${DOMAIN_NAME:-REDHAWK_DEV}
 
 if ! [ -z ${JUST_PRINT+x} ]; then
 	cat <<EOF
 Resolved Settings:
 	COMMAND:      ${COMMAND}
-	GPP_NAME:     ${GPP_NAME}
 	NODE_NAME:    ${NODE_NAME}
 	DOMAIN_NAME:  ${DOMAIN_NAME}
-	OMNISERVER:   ${OMNISERVER:-None Specified}
+	RTL_NAME:     ${RTL_NAME}
+	RTL_VENDOR:   ${RTL_VENDOR:-Not Specified}
+	RTL_PRODUCT:  ${RTL_PRODUCT:-Not Specified}
+	RTL_SERIAL:   ${RTL_SERIAL:-Not Specified}
+	RTL_INDEX:    ${RTL_INDEX:-Not Specified}
+	OMNISERVER:   ${OMNISERVER}
 EOF
 	exit 0
 fi
@@ -147,7 +168,7 @@ if [ $? -gt 0 ]; then
 	}
 fi
 
-# The container name will be the node name
+# The container name will be the Node name with the domain name
 CONTAINER_NAME=${NODE_NAME}-${DOMAIN_NAME}
 
 # Handle the command
@@ -157,6 +178,7 @@ if [[ $COMMAND == "start" ]]; then
 		echo ERROR: No omniserver running or OmniORB Server IP specified
 		exit 1
 	fi
+
 	$DIR/container-running.sh ${CONTAINER_NAME}
 	case $? in
 		1)
@@ -170,11 +192,18 @@ if [[ $COMMAND == "start" ]]; then
 		*)
 			# Does not exist (expected), create it.
 			echo Connecting to omniserver: $OMNISERVER
+
 			docker run --rm -d \
-			    -e GPPNAME=${GPP_NAME} \
 			    -e NODENAME=${NODE_NAME} \
 			    -e DOMAINNAME=${DOMAIN_NAME} \
 			    -e OMNISERVICEIP=${OMNISERVER} \
+			    -e RTL_NAME=${RTL_NAME:-} \
+			    -e RTL_VENDOR=${RTL_VENDOR:-} \
+			    -e RTL_PRODUCT=${RTL_PRODUCT:-} \
+			    -e RTL_SERIAL=${RTL_SERIAL:-} \
+			    -e RTL_INDEX=${RTL_INDEX:-} \
+			    -v /dev/bus/usb:/dev/bus/usb \
+			    --privileged \
 			    --net host \
 				--name ${CONTAINER_NAME} \
 				${IMAGE_NAME} &> /dev/null

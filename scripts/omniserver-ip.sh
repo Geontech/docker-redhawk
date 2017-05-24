@@ -35,7 +35,18 @@ $DIR/container-running.sh ${OMNISERVER_NAME}
 if [ $? -eq 0 ]; then
 	GUESS="$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${OMNISERVER_NAME})"
 	if [[ $GUESS == "" ]]; then
-		GUESS="$(hostname -I | grep -oP '^(\d{1,3}\.?){4}')"
+        HOST_IP="$(hostname -I 2> /dev/null)"
+        if [ $? -eq 0 ]; then
+            GUESS="$(echo ${HOST_IP} | grep -oP '^(\d{1,3}\.?){4}')"
+        else
+            for mac_en in {0..4}; do
+                # Might be OS X
+                GUESS="$(ipconfig getifaddr en${mac_en})"
+                if [ $? -eq 0 ]; then
+                    break;
+                fi
+            done
+        fi
 	fi
 fi
 echo $GUESS

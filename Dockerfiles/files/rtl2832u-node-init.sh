@@ -23,27 +23,38 @@ function print_option() {
 	printf " ---> %-20s %-20s\n" $1 $2
 }
 
-USRP_CONFIG_ARGS="--noinplace --domainname=${DOMAINNAME} --nodename=${NODENAME} --usrpname=${USRP_NAME}"
+RTL2832U_CONFIG_ARGS="--noinplace --domainname=${DOMAINNAME} --nodename=${NODENAME}"
 
 if ! [ -d $SDRROOT/dev/nodes/${NODENAME} ]; then
-	echo Configuring USRP Node
-	if ! [ -z ${USRP_IP_ADDRESS} ]; then
-		print_option IP\: ${USRP_IP_ADDRESS}
-		USRP_CONFIG_ARGS="${USRP_CONFIG_ARGS} --usrpip=${USRP_IP_ADDRESS}"
+	echo Configuring RTL2832U Node
+
+	if ! [ -z ${RTL_NAME} ]; then
+		print_option Name\: ${RTL_NAME}
+		RTL2832U_CONFIG_ARGS="${RTL2832U_CONFIG_ARGS} --rtlname=${RTL_NAME}"
 	fi
 
-	if ! [ -z ${USRP_TYPE} ]; then
-		print_option Type\: ${USRP_TYPE}
-		USRP_CONFIG_ARGS="${USRP_CONFIG_ARGS} --usrptype=${USRP_TYPE}"
+	if ! [ -z ${RTL_VENDOR} ]; then
+		print_option Vendor\: ${RTL_VENDOR}
+		RTL2832U_CONFIG_ARGS="${RTL2832U_CONFIG_ARGS} --rtlvendor=${RTL_VENDOR}"
 	fi
 
-	if ! [ -z ${USRP_SERIAL} ]; then
-		print_option Serial\: ${USRP_SERIAL}
-		USRP_CONFIG_ARGS="${USRP_CONFIG_ARGS} --usrpserial=${USRP_SERIAL}"
+	if ! [ -z ${RTL_PRODUCT} ]; then
+		print_option Product\: ${RTL_PRODUCT}
+		RTL2832U_CONFIG_ARGS="${RTL2832U_CONFIG_ARGS} --rtlproduct=${RTL_PRODUCT}"
 	fi
 
-	${SDRROOT}/dev/devices/rh/USRP_UHD/nodeconfig.py ${USRP_CONFIG_ARGS}
+	if ! [ -z ${RTL_SERIAL} ]; then
+		print_option Serial\: ${RTL_SERIAL}
+		RTL2832U_CONFIG_ARGS="${RTL2832U_CONFIG_ARGS} --rtlserial=${RTL_SERIAL}"
+	fi
+
+	if ! [ -z ${RTL_INDEX} ]; then
+		print_option Index\: ${RTL_INDEX}
+		RTL2832U_CONFIG_ARGS="${RTL2832U_CONFIG_ARGS} --rtlindex=${RTL_INDEX}"
+	fi
+
+	${SDRROOT}/dev/devices/rh/RTL2832U/nodeconfig.py ${RTL2832U_CONFIG_ARGS}
 else
-	echo USRP Node already configured
+	echo RTL2832U Node already configured
 fi
 

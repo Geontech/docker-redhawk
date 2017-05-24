@@ -18,13 +18,26 @@
 #
 
 FROM redhawk/runtime
-MAINTAINER Thomas Goodwin <btgoodwin@geontech>
-LABEL version="2.0.5" description="REDHAWK GPP"
+LABEL name="REST-Python Web Server" \
+    description="Geon's Fork of REST-Python" \
+    maintainer="Thomas Goodwin <btgoodwin@geontech.com>"
+
+# Build-time configurable variables
+ARG REST_PYTHON=http://github.com/geontech/rest-python.git
+ARG REST_PYTHON_BRANCH=master
+ARG REST_PYTHON_PORT=8080
+
+# Runtime variables
+ENV REST_PYTHON=${REST_PYTHON}
+ENV REST_PYTHON_BRANCH=${REST_PYTHON_BRANCH}
+ENV REST_PYTHON_PORT=${REST_PYTHON_PORT}
+
+# Expose the configured default port.
+EXPOSE ${REST_PYTHON_PORT}
 
 RUN yum update -y && yum install -y \
         git \
-        protobuf-devel \
-        protobuf-python \
+        gcc \
         python-dev \
         curl \
         python-virtualenv
@@ -36,20 +49,21 @@ RUN curl https://bootstrap.pypa.io/get-pip.py | python && \
 WORKDIR /opt
 
 # Install the rest-python server
-RUN git clone https://github.com/geontech/rest-python.git && \
+RUN git clone -b ${REST_PYTHON_BRANCH} ${REST_PYTHON} && \
     cd rest-python && \
-    git checkout develop-2.0-pb2 && \
-    cd protobuf && \
-    protoc * --python_out=../rest/util_pb2 && \
-    cd ../ && \
     ./setup.sh install && \
     pip install -r requirements.txt
+
+# Script for compiling protobufs on start of the container if the
+# rest server has the ./protobuf path.
+ADD files/rest-python-protobuf.sh /tmp/rest-python-protobuf.sh
+RUN chmod u+x /tmp/rest-python-protobuf.sh && echo ". /tmp/rest-python-protobuf.sh" | tee -a /root/.bashrc
 
 # Mount point for end-user apps
 VOLUME /opt/rest-python/apps
 
-# Expose the port
-EXPOSE 8080
-
 WORKDIR /opt/rest-python
-CMD [ "/bin/bash", "-l", "-c", "./pyrest.py" ]
+
+# Supervisord script
+ADD files/supervisord-rest-python.conf /etc/supervisor.d/rest-python.conf
+CMD ["/usr/bin/supervisord"]

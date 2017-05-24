@@ -17,44 +17,56 @@
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 #
 
-repo := redhawk/base
+VERSION := 2.0.5
+
+base := redhawk/base
 omni := redhawk/omniserver
 runtime := redhawk/runtime
 redhawk_images := \
 	redhawk/development \
 	redhawk/domain \
 	redhawk/gpp \
-	redhawk/webserver \
-        redhawk/usrp
-	# redhawk/rtl2832u \
-	# redhawk/usrp
-all_images := $(repo) $(omni) $(runtime) $(redhawk_images)
+    redhawk/usrp \
+	redhawk/rtl2832u \
+	redhawk/bu353s4
+redhawk_webserver := redhawk/webserver
+all_images := $(base) $(omni) $(runtime) $(redhawk_images) $(redhawk_webserver)
+reversed := $(redhawk_webserver) $(redhawk_images) $(runtime) $(omni) $(base)
 
-linked_scripts := omniserver domain sdrroot login gpp rhide volume-manager webserver usrp
+linked_scripts := omniserver domain sdrroot login gpp rhide volume-manager webserver usrp rtl2832u bu353s4 show-log
+
+# Default REST-python server and branch
+REST_PYTHON := http://github.com/geontech/rest-python.git
+REST_PYTHON_BANCH := master
 
 # Macros for querying an image vs. building one.
 image_check = $(strip $(shell docker images -q $1))
-image_build = $(if $(call image_check,$1),, \
-	docker build --rm \
+image_build = docker build --rm \
+		$2 \
 		-f ./Dockerfiles/$(subst redhawk/,,$1).Dockerfile \
-		-t $1 \
+		-t $1:$(VERSION) \
 		./Dockerfiles \
-	)
+		&& \
+	docker tag $@:$(VERSION) $@:latest
 
 .PHONY: all clean $(all_images)
 
 # Everything
-all: $(redhawk_images) $(linked_scripts) $(omni)
+all: $(redhawk_images) $(redhawk_webserver) $(linked_scripts) $(omni)
 
 # Image building targets
-$(repo):
-	$(call image_build,$@)	
+$(base):
+	$(call image_build,$@)
 
-$(omni) $(runtime): $(repo)
+$(omni) $(runtime): $(base)
 	$(call image_build,$@)
 
 $(redhawk_images): $(runtime)
 	$(call image_build,$@)
+
+$(redhawk_webserver): $(runtime)
+	$(eval BUILD_ARGS = --build-arg REST_PYTHON=$(REST_PYTHON) --build-arg REST_PYTHON_BRANCH=$(REST_PYTHON_BRANCH))
+	$(call image_build,$@,$(BUILD_ARGS))
 
 # Launcher/helper script targets
 $(linked_scripts):
@@ -62,25 +74,25 @@ $(linked_scripts):
 	@chmod a+x ./$@
 
 # Cleaning methods
-reversed := $(redhawk_images) $(runtime) $(omni) $(repo)
-stop_container = $(shell docker stop $1 &> /dev/null)
-remove_container = $(shell docker rm $1 &> /dev/null)
-remove_image = $(shell docker rmi $1 &> /dev/null)
+stop_container = docker stop $1 &> /dev/null
+remove_container = docker rm $1 &> /dev/null
+remove_image = docker rmi $1 &> /dev/null
 
 list_containers = $(shell docker ps -qa --filter="ancestor=$1" &> /dev/null)
 for_each_container = $(foreach container,$(call list_containers,$1),\
-	$(info --> Stopping $1) \
+	$(info --> Stopping $(container)) \
 	$(call stop_container,$(container)) \
-	$(info --> Removing $1) \
+	$(info --> Removing $(container)) \
 	$(call remove_container,$(container)) \
 	)
 for_each_image = $(foreach image,$1,\
-	$(info Checking $(image)...) \
-	$(if $(call image_check,$(image)),\
+	$(info Checking $(image):$(VERSION)...) \
+	$(if $(call image_check,$(image):$(VERSION)),\
 		$(call for_each_container,$(image)) \
-		$(info Removing $(image)) \
-		$(call remove_image,$(image)), \
-		$(info Nothing to do for $(image)) \
+		$(info Removing $(image):$(VERSION) and latest) \
+		$(call remove_image,$(image):latest) \
+		$(call remove_image,$(image):$(VERSION)), \
+		$(info Nothing to do for $(image):$(VERSION)) \
 		)\
 	)
 

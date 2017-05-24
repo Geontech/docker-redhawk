@@ -17,9 +17,10 @@
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 #
 
-FROM redhawk/runtime
-MAINTAINER Thomas Goodwin <btgoodwin@geontech>
-LABEL version="2.0.5" description="CentOS 7 with REDHAWK Development Environment"
+FROM redhawk/runtime:2.0.5
+LABEL name="REDHAWK IDE Environment" \
+	description="REDHAWK Integrated Development Environment Runner" \
+	maintainer="Thomas Goodwin <btgoodwin@geontech.com>"
 
 # Install development environment
 RUN yum update -y && \
@@ -30,6 +31,7 @@ RUN yum update -y && \
 		sudo
 
 ADD files/rhide-init.sh /opt/rhide-init.sh
+RUN chmod a+x /opt/rhide-init.sh
 
 ENV RHUSER_ID 54321
 

@@ -17,9 +17,13 @@
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 #
 
-FROM redhawk/runtime
-MAINTAINER Thomas Goodwin <btgoodwin@geontech>
-LABEL version="2.0.5" description="REDHAWK RTL2832U -based Node"
+FROM redhawk/runtime:2.0.5
+LABEL name="REDHAWK SDR RTL2832U Device" \
+    description="REDHAWK RTL2832U" \
+    maintainer="Thomas Goodwin <btgoodwin@geontech.com>"
+
+RUN yum update -y && \
+	yum install -y rh.RTL2832U
 
 ENV DOMAINNAME  ""
 ENV RTL_NAME    ""
@@ -27,14 +31,12 @@ ENV RTL_VENDOR  ""
 ENV RTL_PRODUCT ""
 ENV RTL_SERIAL  ""
 ENV RTL_INDEX   ""
-ENV NODENAME    ""
+ENV NODENAME    "" 
 
-ENTRYPOINT [\
-	"/bin/bash", "-l", "-c", \
-	"${SDRROOT}/dev/devices/rh/RTL2832U/nodeconfig.py --domainname=${DOMAINNAME} --nodename=${NODENAME} --noinplace --rtlname=${RTL_NAME} --rtlvendor=${RTL_VENDOR} --rtlproduct=${RTL_PRODUCT} --rtlserial=${RTL_SERIAL} --rtlindex=${RTL_INDEX}" \
-	]
+# Add script for configuring the node
+ADD files/rtl2832u-node-init.sh /root/rtl2832u-node-init.sh
+RUN chmod u+x /root/rtl2832u-node-init.sh && echo "/root/rtl2832u-node-init.sh" | tee -a /root/.bashrc
 
-CMD [\
-	"/bin/bash", "-l", "-c", \
-	"nodeBooter -d /nodes/${NODENAME}/DeviceManager.dcd.xml" \
-	]
+# RTL2832U Supervisord script
+ADD files/supervisord-rtl2832u.conf /etc/supervisor.d/rtl2832u.conf
+CMD ["/usr/bin/supervisord"]

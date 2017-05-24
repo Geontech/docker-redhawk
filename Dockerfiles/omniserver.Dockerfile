@@ -17,21 +17,16 @@
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 #
 
-FROM redhawk/base
-MAINTAINER Thomas Goodwin <btgoodwin@geontech>
-LABEL version="2.0.5" description="CentOS 7 running Omni Services"
+FROM redhawk/base:2.0.5
 
-# Install pip, supervisord, and the omni* configuration.
-RUN yum update -y && yum install -y python-dev curl
-RUN curl https://bootstrap.pypa.io/get-pip.py | python
-RUN pip install --upgrade pip && \
-	pip install --upgrade supervisor && \
-	mkdir -p /var/log/omniORB && \
+LABEL name="OmniORB Servers" \
+    description="Omni Services Runner"
+
+# Create log directories and add supervisord config for omni.
+RUN mkdir -p /var/log/omniORB && \
 	mkdir -p /var/log/omniEvents
-ADD files/supervisord-omniserver.conf /etc/supervisor/supervisord.conf
+ADD files/supervisord-omniserver.conf /etc/supervisor.d/omniserver.conf
 
 EXPOSE 2809 11169
 
 CMD ["/usr/bin/supervisord"]
-
-

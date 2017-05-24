@@ -44,8 +44,8 @@ function print_status() {
 function usage () {
 	cat <<EOF
 
-Usage: $0 start|stop
-	[-d|--domain  DOMAIN_NAME]    Domain Name, default is REDHAWK_DEV
+Usage: $0 start|stop [DOMAIN_NAME]
+	[DOMAIN_NAME]                 Domain Name, default is REDHAWK_DEV
 	[-s|--sdrroot SDRROOT_VOLUME] SDRROOT Volume Name
 	[-o|--omni    OMNISERVER]     IP to the OmniServer 
 	                              (detected: ${OMNISERVER})
@@ -53,7 +53,7 @@ Usage: $0 start|stop
 
 Examples:
 	Start or stop a domain:
-		$0 start|stop --domain REDHAWK_TEST2
+		$0 start|stop REDHAWK_TEST2
 
 	Status of all locally-running ${IMAGE_NAME} instances:
 		$0
@@ -77,17 +77,19 @@ while [[ $# -gt 0 ]]; do
 				exit 1
 			fi
 			COMMAND="$1"
-			;;
-		-d|--domain)
-			DOMAIN_NAME="$2"
-			shift
+			if [ -z ${2} ] || [[ ${2:0:1} == '-' ]]; then
+				DOMAIN_NAME="REDHAWK_DEV"
+			else
+				DOMAIN_NAME="${2}"
+				shift
+			fi
 			;;
 		-s|--sdrroot)
-			SDRROOT_VOLUME="$2"
+			SDRROOT_VOLUME="${2:?Missing SDRROOT Argument}"
 			shift
 			;;
 		-o|--omni)
-			OMNISERVER="$2"
+			OMNISERVER="${2:?Missing OMNISERVER Argument}"
 			shift
 			;;
 		-h|--help)
@@ -111,9 +113,6 @@ if [ -z ${COMMAND+x} ]; then
 	echo ERROR: No command specified \(start or stop\)
 	exit 1
 fi
-
-# Default Domain name
-DOMAIN_NAME=${DOMAIN_NAME:-REDHAWK_DEV}
 
 # "Just print"
 if ! [ -z ${JUST_PRINT+x} ]; then
