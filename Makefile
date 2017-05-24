@@ -73,29 +73,25 @@ $(linked_scripts):
 	@ln -s scripts/$@.sh ./$@
 	@chmod a+x ./$@
 
-# Cleaning methods
-stop_container = docker stop $1 &> /dev/null
-remove_container = docker rm $1 &> /dev/null
-remove_image = docker rmi $1 &> /dev/null
-
-list_containers = $(shell docker ps -qa --filter="ancestor=$1" &> /dev/null)
+# Cleaning
+remove_container = $(shell docker rm -f $1)
+remove_image = $(shell docker rmi $1)
+list_containers = $(shell docker ps -qa --filter="ancestor=$1")
 for_each_container = $(foreach container,$(call list_containers,$1),\
-	$(info --> Stopping $(container)) \
-	$(call stop_container,$(container)) \
-	$(info --> Removing $(container)) \
 	$(call remove_container,$(container)) \
+	$(info --> Removed $(container)) \
 	)
 for_each_image = $(foreach image,$1,\
 	$(info Checking $(image):$(VERSION)...) \
 	$(if $(call image_check,$(image):$(VERSION)),\
 		$(call for_each_container,$(image)) \
-		$(info Removing $(image):$(VERSION) and latest) \
+		$(call remove_image,$(image):$(VERSION)) \
 		$(call remove_image,$(image):latest) \
-		$(call remove_image,$(image):$(VERSION)), \
+		$(info Removed with $(image):$(VERSION) and latest), \
 		$(info Nothing to do for $(image):$(VERSION)) \
 		)\
 	)
 
 clean:
-	@$(call for_each_image,$(reversed))
+	@$(eval result := $(call for_each_image,$(reversed)))
 	@rm -f $(linked_scripts)
