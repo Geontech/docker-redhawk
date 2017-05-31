@@ -38,11 +38,12 @@ function print_status() {
 function usage () {
 	cat <<EOF
 
-Usage: $0 CONTAINER_NAME
+Usage: $0 CONTAINER_NAME [options]
 	[CONTAINER_NAME]    The Docker Container name to view
-	[-l|--log LOG_NAME]  The log file name to display
-	                     Default is the one found in /var/log/supervisord/... .log
-	[-n       NUM_LINES] The number of lines of the log to display, default 50
+	[-l|--log LOG_NAME] The log file name(s) to display.
+	                    The default is to show all found in 
+	                     /var/log/supervisord/... .log
+	[-n      NUM_LINES] The number of lines of the log to display, default 50
 
 Examples:
 	List all running containers:
@@ -61,11 +62,12 @@ if [ -z ${1+x} ]; then
 fi
 
 # Parse arguments
+LOG_NAME=""
 while [[ $# -gt 0 ]]; do
 	key="$1"
 	case $key in
 		-l|--log)
-			LOG_NAME="${2:?Missing LOG_NAME Argument}"
+			LOG_NAME="${2:?Missing LOG_NAME Argument} ${LOG_NAME}"
 			shift
 			;;
 		-n)
@@ -110,9 +112,9 @@ case $? in
 	;;
 *)
 	echo Displaying log... Type \"CTRL+C\" when finished.
-	if [ -z ${LOG_NAME+x} ]; then
-		LOG_NAME=`docker exec ${CONTAINER_NAME} bash -c "find /var/log/supervisord -name '*.log' -print -quit"`
+	if [ -z ${LOG_NAME} ]; then
+		LOG_NAME='/var/log/supervisord/*.log'
 	fi
-	docker exec -it ${CONTAINER_NAME} bash -c "tail -fn ${NUM_LINES} ${LOG_NAME}"
+	docker exec -it ${CONTAINER_NAME} bash -c "cat ${LOG_NAME} | tail -fn ${NUM_LINES} ${LOG_NAME}"
 	;;
 esac

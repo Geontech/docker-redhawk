@@ -1,7 +1,7 @@
 # This file is protected by Copyright. Please refer to the COPYRIGHT file
 # distributed with this source distribution.
 #
-# This file is part of Docker REDHAWK.
+# This file is part of Geon's Docker REDHAWK.
 #
 # Docker REDHAWK is free software: you can redistribute it and/or modify it under
 # the terms of the GNU Lesser General Public License as published by the Free
@@ -20,6 +20,7 @@
 FROM centos:7
 
 ENV RH_VERSION=2.0.5
+ENV OMNISERVICEIP 127.0.0.1
 
 LABEL name="REDHAWK SDR Base Image" \
     license="GPLv3" \
@@ -28,36 +29,41 @@ LABEL name="REDHAWK SDR Base Image" \
     version="${RH_VERSION}" \
     vendor="Geon Technologies, LLC"
 
-# Update, epel, etc. and omni services as well as upgraded pyparsing
-RUN yum update -y && \
-    yum install -y \
-    python-dev \
+# Add redhawk yum repo reference
+ADD files/geon-redhawk.repo /etc/yum.repos.d/geon-redhawk.repo
+
+# Update, epel, etc. as well as upgraded pyparsing
+# Then add setup supervisord directories
+RUN yum install -y \
     curl \
     wget \
     epel-release \
-    http://cbs.centos.org/kojifiles/packages/pyparsing/2.0.3/1.el7/noarch/pyparsing-2.0.3-1.el7.noarch.rpm
-
-# Add Supervisord and default configuration
-RUN curl https://bootstrap.pypa.io/get-pip.py | python
-RUN pip install --upgrade pip && \
+    http://cbs.centos.org/kojifiles/packages/pyparsing/2.0.3/1.el7/noarch/pyparsing-2.0.3-1.el7.noarch.rpm && \
+    yum -y clean all && \
+    \
+    curl https://bootstrap.pypa.io/get-pip.py | python && \
+    pip install --upgrade pip && \
     pip install --upgrade supervisor && \
-    mkdir -p /etc/supervisor.d && \
-    mkdir -p /var/log/supervisord
+    mkdir -p \
+        /etc/supervisor.d    \
+        /etc/supervisor      \
+        /var/log/supervisord
+
+# Supervisord default config
 ADD files/supervisord.conf /etc/supervisor/supervisord.conf
 
-# Load the REDHAWK repo
-ADD files/repo-installer.sh /opt
-WORKDIR /opt
-RUN bash ./repo-installer.sh && rm ./repo-installer.sh
-
-# Install omni services and add event service to config
-RUN yum update -y && yum install -y omniORB-servers omniEvents-server && \
-	echo "InitRef = EventService=corbaloc::127.0.0.1:11169/omniEvents" >> /etc/omniORB.cfg
+# Install omni
+RUN yum install -y \
+    omniORB-servers \
+    omniEvents-server && \
+    yum -y clean all && \
+    \
+    echo "InitRef = EventService=corbaloc::127.0.0.1:11169/omniEvents" >> /etc/omniORB.cfg
 
 # IP address for omni services and an auto-configure script
-ENV OMNISERVICEIP 127.0.0.1
 ADD files/omnicfg-updater.sh /root/omnicfg-updater.sh
-RUN chmod u+x /root/omnicfg-updater.sh && echo "/root/omnicfg-updater.sh" | tee -a /root/.bash_profile
+RUN chmod u+x /root/omnicfg-updater.sh && \
+    echo "/root/omnicfg-updater.sh" | tee -a /root/.bash_profile
 
 WORKDIR /root
 

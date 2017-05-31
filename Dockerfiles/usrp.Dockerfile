@@ -1,7 +1,7 @@
 # This file is protected by Copyright. Please refer to the COPYRIGHT file
 # distributed with this source distribution.
 #
-# This file is part of Docker REDHAWK.
+# This file is part of Geon's Docker REDHAWK.
 #
 # Docker REDHAWK is free software: you can redistribute it and/or modify it under
 # the terms of the GNU Lesser General Public License as published by the Free
@@ -17,15 +17,14 @@
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 #
 
-FROM redhawk/runtime:2.0.5
+FROM geontech/redhawk-runtime:2.0.5
 LABEL name="REDHAWK SDR USRP_UHD Device" \
     description="REDHAWK USRP_UHD w/ updated UHD driver version (3.10)" \
     maintainer="Thomas Goodwin <btgoodwin@geontech.com>"
 
-# Remove old UHD and USRP_UHD
-RUN yum update -y && \
-    yum install -y \
-        redhawk-devel \
+# Compile UHD from source
+RUN yum install -y \
+        redhawk-sdrroot-dev-mgr \
         autoconf \
         automake \
         cmake \
@@ -42,34 +41,63 @@ RUN yum update -y && \
         gcc \
         gcc-c++ \
         e2fsprogs-devel \
-        rpm-build   
-
-# compile the up-to-date verison of UHD
-
-RUN git clone git://github.com/EttusResearch/uhd.git && \
+        rpm-build && \
+    \
+    git clone git://github.com/EttusResearch/uhd.git && \
     mkdir -p uhd/host/build && \
-    cd uhd/host/build && \
+    pushd uhd/host/build && \
     git checkout release_003_010_001_001 && \
     cmake ../ && \
     make && \
     make test && \
     make install && \
     ldconfig && \
-    cpack ../
-
-# compile up-to-date version of USRP_UHD
-
-RUN cd uhd/host/build/ && \
+    cpack ../ && \
+    \
+    yum autoremove -y \
+        autoconf \
+        automake \
+        cmake \
+        doxygen \
+        python-pip \
+        git \
+        g++ \
+        boost-devel \
+        libusb1-devel \
+        gpsd-devel \
+        gcc \
+        gcc-c++ \
+        e2fsprogs-devel \
+        rpm-build && \
+    \
     yum localinstall -y uhd*.rpm && \
-    ldconfig 
+    yum clean all -y && \
+    popd && \
+    rm -rf uhd && \
+    ldconfig
 
-RUN source /etc/profile.d/redhawk.sh && \
+# Compile USRP_UHD from source
+RUN yum install -y \
+        redhawk-devel \
+        autoconf \
+        automake \
+        git && \
+    source /etc/profile.d/redhawk.sh && \
     source /etc/profile.d/redhawk-sdrroot.sh && \
     git clone git://github.com/RedhawkSDR/USRP_UHD.git && \
-    cd USRP_UHD && \
+    pushd USRP_UHD && \
     git checkout tags/4.0.1 && \
     ./build.sh && \
-    ./build.sh install
+    ./build.sh install && \
+    popd && \
+    rm -rf USRP_UHD && \
+    \
+    yum autoremove -y \
+        redhawk-devel \
+        autoconf \
+        automake && \
+    yum clean all -y && \
+    /usr/local/lib64/uhd/utils/uhd_images_downloader.py
 
 
 ENV DOMAINNAME      ""
@@ -81,11 +109,12 @@ ENV USRP_SERIAL     ""
 
 # Add script for configuring the node
 ADD files/usrp-node-init.sh /root/usrp-node-init.sh
-RUN chmod u+x /root/usrp-node-init.sh && echo "/root/usrp-node-init.sh" | tee -a /root/.bashrc
+RUN chmod u+x /root/usrp-node-init.sh && \
+    echo "/root/usrp-node-init.sh" | tee -a /root/.bashrc
 
-# Add call to uhd_images_downloader to pick up the latest images when the container starts
-RUN echo "/usr/local/lib64/uhd/utils/uhd_images_downloader.py" | tee -a /root/.bashrc
-
-# USRP Supervisord script
+# USRP Supervisord script and exit script
 ADD files/supervisord-usrp.conf /etc/supervisor.d/usrp.conf
+ADD files/kill_supervisor.py /usr/bin/kill_supervisor.py
+RUN chmod u+x /usr/bin/kill_supervisor.py
+
 CMD ["/usr/bin/supervisord"]

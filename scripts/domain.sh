@@ -18,8 +18,6 @@
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 #
 
-IMAGE_NAME=redhawk/domain
-
 # Detect the script's location
 SOURCE="${BASH_SOURCE[0]}"
 while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
@@ -29,6 +27,9 @@ while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symli
 done
 DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
+filename=$(basename "$SOURCE")
+source ${DIR}/image-name.sh
+IMAGE_NAME=$(image_name "${filename%.*}")
 
 # Try to detect the omniserver
 OMNISERVER="$($DIR/omniserver-ip.sh)"

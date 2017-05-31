@@ -1,3 +1,4 @@
+#!/bin/bash
 # This file is protected by Copyright. Please refer to the COPYRIGHT file
 # distributed with this source distribution.
 #
@@ -17,27 +18,36 @@
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 #
 
-FROM geontech/redhawk-runtime:2.0.5
-LABEL name="REDHAWK IDE Environment" \
-	description="REDHAWK Integrated Development Environment Runner" \
-	maintainer="Thomas Goodwin <btgoodwin@geontech.com>"
+# Detect the script's location
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+  DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+done
+DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
-# Install development environment
-RUN yum groupinstall -y "REDHAWK Development" && \
-	yum install -y \
-		PackageKit-gtk-module \
-		libcanberra-gtk2 \
-		sudo && \
-	yum autoremove -y && \
-	yum clean all -y
+function image_name() {
+	IMAGE_NAME="geontech/redhawk-"
+	case $1 in
+		bu353s4) 	;&
+		domain)		;&
+		gpp)		;&
+		omniserver)	;&
+		rtl2832u)	;&
+		webserver)	;&
+		usrp)
+			IMAGE_NAME="${IMAGE_NAME}${1}"
+			;;
+		rhide)
+			IMAGE_NAME="${IMAGE_NAME}development"
+			;;	
+		*)
+			IMAGE_NAME="ERROR"
+			exit 1
+			;;
+	esac
 
-ADD files/rhide-init.sh /opt/rhide-init.sh
-RUN chmod a+x /opt/rhide-init.sh
-
-ENV RHUSER_ID 54321
-
-VOLUME /var/redhawk/sdr
-VOLUME /home/user/workspace
-
-# Run the RHIDE init script
-CMD ["/bin/bash", "-l", "-c", "/opt/rhide-init.sh"]
+	echo ${IMAGE_NAME}
+	exit 0
+}

@@ -19,31 +19,32 @@
 
 VERSION := 2.0.5
 
-base := redhawk/base
-omni := redhawk/omniserver
-runtime := redhawk/runtime
+image_prefix := geontech/redhawk
+base := $(image_prefix)-base
+omni := $(image_prefix)-omniserver
+runtime := $(image_prefix)-runtime
 redhawk_images := \
-	redhawk/development \
-	redhawk/domain \
-	redhawk/gpp \
-    redhawk/usrp \
-	redhawk/rtl2832u \
-	redhawk/bu353s4
-redhawk_webserver := redhawk/webserver
+	$(image_prefix)-development \
+	$(image_prefix)-domain \
+	$(image_prefix)-gpp \
+    $(image_prefix)-usrp \
+	$(image_prefix)-rtl2832u \
+	$(image_prefix)-bu353s4
+redhawk_webserver := $(image_prefix)-webserver
 all_images := $(base) $(omni) $(runtime) $(redhawk_images) $(redhawk_webserver)
 reversed := $(redhawk_webserver) $(redhawk_images) $(runtime) $(omni) $(base)
 
 linked_scripts := omniserver domain sdrroot login gpp rhide volume-manager webserver usrp rtl2832u bu353s4 show-log
 
 # Default REST-python server and branch
-REST_PYTHON := http://github.com/geontech/rest-python.git
-REST_PYTHON_BANCH := master
+REST_PYTHON := http://github.com/GeonTech/rest-python.git
+REST_PYTHON_BRANCH := master
 
 # Macros for querying an image vs. building one.
 image_check = $(strip $(shell docker images -q $1))
 image_build = docker build --rm \
 		$2 \
-		-f ./Dockerfiles/$(subst redhawk/,,$1).Dockerfile \
+		-f ./Dockerfiles/$(subst geontech/redhawk-,,$1).Dockerfile \
 		-t $1:$(VERSION) \
 		./Dockerfiles \
 		&& \
@@ -66,9 +67,11 @@ $(redhawk_images): $(runtime)
 
 $(redhawk_webserver): $(runtime)
 	$(eval BUILD_ARGS = --build-arg REST_PYTHON=$(REST_PYTHON) --build-arg REST_PYTHON_BRANCH=$(REST_PYTHON_BRANCH))
+	@echo Build Arguments: ${BUILD_ARGS}
 	$(call image_build,$@,$(BUILD_ARGS))
 
 # Launcher/helper script targets
+helper_scripts: $(linked_scripts)
 $(linked_scripts):
 	@ln -s scripts/$@.sh ./$@
 	@chmod a+x ./$@

@@ -17,8 +17,6 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 #
-IMAGE_NAME=redhawk/development
-
 # Detect the script's location
 SOURCE="${BASH_SOURCE[0]}"
 while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
@@ -27,6 +25,10 @@ while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symli
   [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
 done
 DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+filename=$(basename "$SOURCE")
+source ${DIR}/image-name.sh
+IMAGE_NAME=$(image_name "${filename%.*}")
 
 # Check if the image is installed yet, if not, build it.
 $DIR/image-exists.sh ${IMAGE_NAME}

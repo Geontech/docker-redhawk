@@ -1,7 +1,7 @@
 # This file is protected by Copyright. Please refer to the COPYRIGHT file
 # distributed with this source distribution.
 #
-# This file is part of Docker REDHAWK.
+# This file is part of Geon's Docker REDHAWK.
 #
 # Docker REDHAWK is free software: you can redistribute it and/or modify it under
 # the terms of the GNU Lesser General Public License as published by the Free
@@ -17,7 +17,7 @@
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 #
 
-FROM redhawk/runtime:2.0.5
+FROM geontech/redhawk-runtime:2.0.5
 LABEL version="2.0.5" \
     description="REDHAWK GPP Runner" \
     maintainer="Thomas Goodwin <btgoodwin@geontech.com>"
@@ -26,8 +26,19 @@ ENV DOMAINNAME ""
 ENV NODENAME   ""
 ENV GPPNAME    ""
 
-ADD files/gpp-node-init.sh /root/gpp-node-init.sh
-RUN chmod u+x /root/gpp-node-init.sh && echo "/root/gpp-node-init.sh" | tee -a /root/.bashrc
+RUN yum install -y \
+		GPP \
+		GPP-profile && \
+	yum clean all -y
 
+# Create the node init script for the GPP
+ADD files/gpp-node-init.sh /root/gpp-node-init.sh
+RUN chmod u+x /root/gpp-node-init.sh && \
+	echo "/root/gpp-node-init.sh" | tee -a /root/.bashrc
+
+# Create the supervisord device script and "exit" event listener
 ADD files/supervisord-device.conf /etc/supervisor.d/device.conf
+ADD files/kill_supervisor.py /usr/bin/kill_supervisor.py
+RUN chmod ug+x /usr/bin/kill_supervisor.py
+
 CMD ["/usr/bin/supervisord"]

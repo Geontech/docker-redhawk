@@ -17,9 +17,6 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 #
-
-IMAGE_NAME=redhawk/usrp
-
 # Detect the script's location
 SOURCE="${BASH_SOURCE[0]}"
 while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
@@ -28,6 +25,10 @@ while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symli
   [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
 done
 DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+filename=$(basename "$SOURCE")
+source ${DIR}/image-name.sh
+IMAGE_NAME=$(image_name "${filename%.*}")
 
 # Try to detect the omniserver
 OMNISERVER="$($DIR/omniserver-ip.sh)"
@@ -45,11 +46,11 @@ function usage () {
 	cat <<EOF
 
 Usage: $0 start|stop NODE_NAME
-	[-u|--usrp]   USRP_NAME]   Name for the USRP Device (default: USRP_UHD_...)
 	[-d|--domain  DOMAIN_NAME] Domain Name, default is REDHAWK_DEV
 	[-o|--omni    OMNISERVER]  IP to the OmniServer (detected: ${OMNISERVER})
 	[--usrptype   USRP_TYPE]   USRP type according to UHD (b200, etc., optional)
 	[--usrpserial USRP_SERIAL] USRP Serial number for UHD (optional)
+	[--usrpname   USRP_NAME]   USRP name according to UHD (optional)
 	[--usrpip     USRP_IP]     USRP IP Address (for networked devices, optional)
 	[--list-usb]               Print list of possible USB USRPs
 	[-p|--print]               Print resolved settings
@@ -112,16 +113,12 @@ while [[ $# -gt 0 ]]; do
 				shift
 			fi
 			;;
-		-u|--usrp)
-			USRP_NAME="$2"
-			shift
-			;;
 		-d|--domain)
-			DOMAIN_NAME="$2"
+			DOMAIN_NAME="${2:?Missing DOMAIN_NAME Argument}"
 			shift
 			;;
 		-o|--omni)
-			OMNISERVER="$2"
+			OMNISERVER="${2:?Missing OMNISERVER Argument}"
 			shift
 			;;
 		-h|--help)
@@ -129,15 +126,19 @@ while [[ $# -gt 0 ]]; do
 			exit 0
 			;;
 		--usrptype)
-			USRP_TYPE="$2"
+			USRP_TYPE="${2:?Missing USRP_TYPE Argument}"
+			shift
+			;;
+		--usrpname)
+			USRP_NAME="${2:?Missing USRP_NAME Argument}"
 			shift
 			;;
 		--usrpserial)
-			USRP_SERIAL="$2"
+			USRP_SERIAL="${2:?Missing USRP_SERIAL Argument}"
 			shift
 			;;
 		--usrpip)
-			USRP_IP="$2"
+			USRP_IP="${2:?Missing USRP_IP Argument}"
 			shift
 			;;
 		--list-usb)
@@ -163,7 +164,6 @@ if [ -z ${COMMAND+x} ]; then
 fi
 
 # Enforce defaults
-USRP_NAME=${USRP_NAME:-USRP_UHD_$(uuidgen)}
 DOMAIN_NAME=${DOMAIN_NAME:-REDHAWK_DEV}
 
 if ! [ -z ${JUST_PRINT+x} ]; then
@@ -171,8 +171,8 @@ if ! [ -z ${JUST_PRINT+x} ]; then
 Resolved Settings:
 	COMMAND:      ${COMMAND}
 	NODE_NAME:    ${NODE_NAME}
-	USRP_NAME:    ${USRP_NAME}
 	DOMAIN_NAME:  ${DOMAIN_NAME}
+	USRP_NAME:    ${USRP_NAME:-Not Specified}
 	USRP_TYPE:    ${USRP_TYPE:-Not Specified}
 	USRP_SERIAL:  ${USRP_SERIAL:-Not Specified}
 	USRP_IP:      ${USRP_IP:-Not Specified}
@@ -202,7 +202,7 @@ if [[ $COMMAND == "start" ]]; then
 	fi
 
 	# Verify at least one of the usrp options has been set
-	if [ -z ${USRP_TYPE+x} ] && [ -z ${USRP_SERIAL+x} ] && [ -z ${USRP_IP+x} ] ]; then
+	if [ -z ${USRP_NAME+x} ] && [ -z ${USRP_TYPE+x} ] && [ -z ${USRP_SERIAL+x} ] && [ -z ${USRP_IP+x} ] ]; then
 		usage
 		echo ERROR: At least one of the --usrp... options must be specified to find the device
 		exit 1

@@ -2,27 +2,27 @@
 
 This repository builds a series of Docker images and scripts for standing up an installation of REDHAWK SDR as well as several example devices and a web server.  
 
-For the USRP image (redhawk/usrp), the UHD driver is recompiled to a newer version and the USRP_UHD Device is compiled from source against that newer driver.  The result is access to the latest Ettus Research USRPs from the container.
+For the USRP image (geontech/redhawk-usrp), the UHD driver is recompiled to a newer version and the USRP_UHD Device is compiled from source against that newer driver.  The result is access to the latest Ettus Research USRPs from the container.
 
 ## Building
 
-To build all images, simply type `make`.  At the command line, you can also specify the variables: `REST_PYTHON` and `REST_PYTHON_BRANCH`, which specifically apply to the `redhawk/webserver`.
+To build all images, simply type `make`.  At the command line, you can also specify the variables: `REST_PYTHON` and `REST_PYTHON_BRANCH`, which specifically apply to the `geontech/redhawk-webserver`.
 
 You will end up with the following images that are meant't to be run individually.
 
-* `redhawk/base`: This is the repository installation, omni services (non-running), and an `/etc/omniORB.cfg` update script.
-* `redhawk/runtime`: The typical "REDHAWK Runtime" group install.  It is the basis for the `domain` and various device launchers.
+* `geontech/redhawk-base`: This is the repository installation, omni services (non-running), and an `/etc/omniORB.cfg` update script.
+* `geontech/redhawk-runtime`: The typical "REDHAWK Runtime" group install.  It is the basis for the `domain` and various device launchers.
 
 The remaining images are derived and come with helper scripts for deploying your system:
 
- * `redhawk/omniserver`: Inherits from `redhawk/base`, it has OmniORB and OmniEvents services wrapped in a single image, intended to be run as a singleton in the network.  If you have an Omni server running elsewhere, you do not need this.
- * `redhawk/development`: Configured to expose a workspace volume and run the IDE.
- * `redhawk/domain`: Configured to run as a Domain.
- * `redhawk/gpp`: Configured to run as a GPP -bearing Node.
- * `redhawk/rtl2832u`: Configured to run as an RTL2832U -bearing Node. 
- * `redhawk/usrp`: Configured to run as an USRP_UHD -bearing Node.
- * `redhawk/bu353s4`: Configured to run as a BU353S4 -bearing Node.
- * `redhawk/webserver`: Instantiates a rest-python web server.
+ * `geontech/redhawk-omniserver`: Inherits from `geontech/redhawk-base`, it has OmniORB and OmniEvents services wrapped in a single image, intended to be run as a singleton in the network.  If you have an Omni server running elsewhere, you do not need this.
+ * `geontech/redhawk-development`: Configured to expose a workspace volume and run the IDE.
+ * `geontech/redhawk-domain`: Configured to run as a Domain.
+ * `geontech/redhawk-gpp`: Configured to run as a GPP -bearing Node.
+ * `geontech/redhawk-rtl2832u`: Configured to run as an RTL2832U -bearing Node. 
+ * `geontech/redhawk-usrp`: Configured to run as an USRP_UHD -bearing Node.
+ * `geontech/redhawk-bu353s4`: Configured to run as a BU353S4 -bearing Node.
+ * `geontech/redhawk-webserver`: Instantiates a rest-python web server.
 
  The following scripts will also be linked into the main directory.  Each script supports `-h` and `--help` to learn the usage of the script, and running the script with no arguments provides a status update.
 
@@ -57,7 +57,7 @@ If you would like to log into the Domain container, use `login`:
 
 You will enter a bash shell as the `redhawk` user.  
 
- > **Note:** Not all images have this user defined.  For example, the only user in the `redhawk/omniserver` image is `root`, the default.
+ > **Note:** Not all images have this user defined.  For example, the only user in the `geontech/redhawk-omniserver` image is `root`, the default.
 
  > **Note:** For containers where the name is derived from the Node and Domain names (e.g., GPP), you have to specify the full container name (in this example, `GPP1-REDHAWK_DEV1`).
 
@@ -72,13 +72,13 @@ The result will be a Domain with a persistent SDRROOT.
 
 ## Running the IDE
 
-The `redhawk/development` image provides the development libraries necessary to develop components and devices.  Use the `rhide` script to map your SDRROOT volume and workspace (absolute path or volume name):
+The `geontech/redhawk-development` image provides the development libraries necessary to develop components and devices.  Use the `rhide` script to map your SDRROOT volume and workspace (absolute path or volume name):
 
     ./rhide --sdrroot MY_REDHAWK --workspace /home/me/workspace
 
 ## REST-Python Web Server
 
-The following section contains information about the `redhawk/webserver` REST-Python server image.
+The following section contains information about the `geontech/redhawk-webserver` REST-Python server image.
 
 ### Running
 
@@ -92,14 +92,14 @@ Additionally, if an alternate version of REST-Python should be mounted, use `--r
 
 ### Customizing the Image
 
-Building the REST-Python `redhawk/webserver` image has a two options:
+Building the REST-Python `geontech/redhawk-webserver` image has a two options:
 
  * `REST_PYTHON`: URL to a git server where the REST-Python source is located (default is [Geon's](http://github.com/geontech/rest-python)).
  * `REST_PYTHON_BRANCH`: Branch name of the preferred REST-Python source tree (default is master).
 
-Specifying no options (`make redhawk/webserver`) bakes in the default REST-Python server and branch.  The above options can be specified by passing the variables at make time:
+Specifying no options (`make geontech/redhawk-webserver`) bakes in the default REST-Python server and branch.  The above options can be specified by passing the variables at make time:
 
-    make redhawk/webserver REST_PYTHON=http://my_other_target/repo
+    make geontech/redhawk-webserver REST_PYTHON=http://my_other_target/repo
 
 ## Device Node Controllers
 
@@ -109,14 +109,14 @@ In each case, similar to running `./domain` with no arguments, each of these dev
 
 ### GPP
 
-The `redhawk/gpp` image provides a Node running a GPP Device for your system.  The `gpp` script provides only a few options for naming the device, setting the Domain name, etc.  See the `--help` for usage.  Starting with the default domain:
+The `geontech/redhawk-gpp` image provides a Node running a GPP Device for your system.  The `gpp` script provides only a few options for naming the device, setting the Domain name, etc.  See the `--help` for usage.  Starting with the default domain:
 
     ./gpp start MyGPP
 
 
 ### USRP_UHD
 
-The `redhawk/usrp` image compiles the 3.10 version of UHD and then compiles the USRP_UHD from source.  The resulting device is capable of working with many of the latest Ettus Research USRPs like the USB-attached B205mini.  The associated `usrp` script allows you to configure the Device in its Node when starting an instance of it.
+The `geontech/redhawk-usrp` image compiles the 3.10 version of UHD and then compiles the USRP_UHD from source.  The resulting device is capable of working with many of the latest Ettus Research USRPs like the USB-attached B205mini.  The associated `usrp` script allows you to configure the Device in its Node when starting an instance of it.
 
 For the B205mini, it identifies as the `b200` type.  With it connected to a powered USB 3.0 port:
 
@@ -130,7 +130,7 @@ This will start a container attached to REDHAWK_DEV (the default Domain).  The c
 
 ### RTL2832U
 
-The `redhawk/rtl2832u` image provides the RTL2832U Device.  The associated launcher script is `rtl2832u`:
+The `geontech/redhawk-rtl2832u` image provides the RTL2832U Device.  The associated launcher script is `rtl2832u`:
 
     ./rtl2832u start MyRTL
 
@@ -152,7 +152,7 @@ To make the change permanent, one creates a configuration (`.conf`) file in `/et
 
 ### BU353S4
 
-The `redhawk/bu353s4` image provides Geon's BU353S4 FEI 2.0 -compliant USB-attached serial GPS receiver.  Like the Device, it has only one option: the path to the serial device in `/dev`.  The default is `/dev/ttyUSB0`.  Starting an instance on the default REDHAWK_DEV Domain is:
+The `geontech/redhawk-bu353s4` image provides Geon's BU353S4 FEI 2.0 -compliant USB-attached serial GPS receiver.  Like the Device, it has only one option: the path to the serial device in `/dev`.  The default is `/dev/ttyUSB0`.  Starting an instance on the default REDHAWK_DEV Domain is:
 
     ./bu353s4 start MyGPS
 

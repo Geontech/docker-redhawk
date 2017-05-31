@@ -19,7 +19,6 @@
 #
 
 CONTAINER_NAME=webserver
-IMAGE_NAME=redhawk/${CONTAINER_NAME}
 
 # Detect the script's location
 SOURCE="${BASH_SOURCE[0]}"
@@ -29,6 +28,10 @@ while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symli
   [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
 done
 DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+filename=$(basename "$SOURCE")
+source ${DIR}/image-name.sh
+IMAGE_NAME=$(image_name "${filename%.*}")
 
 function usage () {
 	cat <<EOF

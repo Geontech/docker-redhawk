@@ -1,7 +1,7 @@
 # This file is protected by Copyright. Please refer to the COPYRIGHT file
 # distributed with this source distribution.
 #
-# This file is part of Docker REDHAWK.
+# This file is part of Geon's Docker REDHAWK.
 #
 # Docker REDHAWK is free software: you can redistribute it and/or modify it under
 # the terms of the GNU Lesser General Public License as published by the Free
@@ -17,13 +17,13 @@
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 #
 
-FROM redhawk/runtime
+FROM geontech/redhawk-runtime
 LABEL name="REST-Python Web Server" \
     description="Geon's Fork of REST-Python" \
     maintainer="Thomas Goodwin <btgoodwin@geontech.com>"
 
 # Build-time configurable variables
-ARG REST_PYTHON=http://github.com/geontech/rest-python.git
+ARG REST_PYTHON=http://github.com/GeonTech/rest-python.git
 ARG REST_PYTHON_BRANCH=master
 ARG REST_PYTHON_PORT=8080
 
@@ -35,12 +35,13 @@ ENV REST_PYTHON_PORT=${REST_PYTHON_PORT}
 # Expose the configured default port.
 EXPOSE ${REST_PYTHON_PORT}
 
-RUN yum update -y && yum install -y \
+RUN yum install -y \
         git \
         gcc \
         python-dev \
         curl \
-        python-virtualenv
+        python-virtualenv && \
+    yum clean all -y
 
 # Install and update pip
 RUN curl https://bootstrap.pypa.io/get-pip.py | python && \
@@ -54,16 +55,14 @@ RUN git clone -b ${REST_PYTHON_BRANCH} ${REST_PYTHON} && \
     ./setup.sh install && \
     pip install -r requirements.txt
 
-# Script for compiling protobufs on start of the container if the
-# rest server has the ./protobuf path.
-ADD files/rest-python-protobuf.sh /tmp/rest-python-protobuf.sh
-RUN chmod u+x /tmp/rest-python-protobuf.sh && echo ". /tmp/rest-python-protobuf.sh" | tee -a /root/.bashrc
-
 # Mount point for end-user apps
 VOLUME /opt/rest-python/apps
 
 WORKDIR /opt/rest-python
 
-# Supervisord script
+# Supervisord script and "exit" event listener
 ADD files/supervisord-rest-python.conf /etc/supervisor.d/rest-python.conf
+ADD files/kill_supervisor.py /usr/bin/kill_supervisor.py
+RUN chmod u+x /usr/bin/kill_supervisor.py
+
 CMD ["/usr/bin/supervisord"]

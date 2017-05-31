@@ -1,7 +1,7 @@
 # This file is protected by Copyright. Please refer to the COPYRIGHT file
 # distributed with this source distribution.
 #
-# This file is part of Docker REDHAWK.
+# This file is part of Geon's Docker REDHAWK.
 #
 # Docker REDHAWK is free software: you can redistribute it and/or modify it under
 # the terms of the GNU Lesser General Public License as published by the Free
@@ -17,15 +17,17 @@
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 #
 
-FROM redhawk/base:2.0.5
+FROM geontech/redhawk-base:2.0.5
 
 LABEL name="OmniORB Servers" \
-    description="Omni Services Runner"
+    description="Omni* Services Runner"
 
 # Create log directories and add supervisord config for omni.
 RUN mkdir -p /var/log/omniORB && \
 	mkdir -p /var/log/omniEvents
 ADD files/supervisord-omniserver.conf /etc/supervisor.d/omniserver.conf
+ADD files/kill_supervisor.py /usr/bin/kill_supervisor.py
+RUN chmod u+x /usr/bin/kill_supervisor.py
 
 EXPOSE 2809 11169
 

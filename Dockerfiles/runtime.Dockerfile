@@ -1,7 +1,7 @@
 # This file is protected by Copyright. Please refer to the COPYRIGHT file
 # distributed with this source distribution.
 #
-# This file is part of Docker REDHAWK.
+# This file is part of Geon's Docker REDHAWK.
 #
 # Docker REDHAWK is free software: you can redistribute it and/or modify it under
 # the terms of the GNU Lesser General Public License as published by the Free
@@ -17,12 +17,21 @@
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 #
 
-FROM redhawk/base:2.0.5
+FROM geontech/redhawk-base:2.0.5
 LABEL name="REDHAWK SDR Runtime" \
     description="REDHAWK SDR Runtime dependencies"
 
-# Install REDHAWK Runtime
-RUN yum update -y && \
-	yum groupinstall -y "REDHAWK Runtime"
+# Install REDHAWK Runtime, no GPP, domain, or boot scripts.
+RUN yum groupinstall -y "REDHAWK Runtime" && \
+	cp /etc/profile.d/redhawk-sdrroot.sh /etc/profile.d/redhawk-sdrroot.sh.bak && \
+	yum remove -y \
+		GPP \
+		GPP-profile \
+		omniEvents-bootscripts \
+		redhawk-sdrroot-dev-mgr \
+		redhawk-sdrroot-dom-mgr \
+		redhawk-sdrroot-dom-profile && \
+	yum clean all -y && \
+	mv /etc/profile.d/redhawk-sdrroot.sh.bak /etc/profile.d/redhawk-sdrroot.sh
 
 CMD ["/bin/bash", "-l"]
