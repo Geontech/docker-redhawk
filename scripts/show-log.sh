@@ -115,6 +115,6 @@ case $? in
 	if [ -z ${LOG_NAME} ]; then
 		LOG_NAME='/var/log/supervisord/*.log'
 	fi
-	docker exec -it ${CONTAINER_NAME} bash -c "cat ${LOG_NAME} | tail -fn ${NUM_LINES} ${LOG_NAME}"
+	docker exec -it ${CONTAINER_NAME} bash -c "tail -fn ${NUM_LINES} ${LOG_NAME}"
 	;;
 esac
