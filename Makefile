@@ -44,7 +44,7 @@ REST_PYTHON_BRANCH := master
 image_check = $(strip $(shell docker images -q $1))
 image_build = docker build --rm \
 		$2 \
-		-f ./Dockerfiles/$(subst geontech/redhawk-,,$1).Dockerfile \
+		-f ./Dockerfiles/$(subst $(image_prefix)-,,$1).Dockerfile \
 		-t $1:$(VERSION) \
 		./Dockerfiles \
 		&& \
