@@ -128,6 +128,18 @@ This will start a container attached to REDHAWK_DEV (the default Domain).  The c
 
  Other USRP types can be as well.  See the script's `--help` for a list of options.
 
+#### Special notes for USB USRPs
+
+USB-attached USRPs like the B205mini may need firmware loaded the first time the device is plugged into the computer (or virtual machine).  Otherwise, when you `show-log` the container, you will see CORBA Transient errors when the device fails to initialize quickly enough.  You can stop and restart the container andd the problem will be resolved, or you can run a container first to initialize the device:
+
+    docker run --rm -it \
+        -v /dev/bus/usb:/dev/bus/usb \
+        --privileged \
+        geontech/redhawk-usrp \
+        bash -lc "uhd_find_devices && uhd_usrp_probe"
+
+The result is a one-off container that will configure the firmware and FPGA image.
+
 ### RTL2832U
 
 The `geontech/redhawk-rtl2832u` image provides the RTL2832U Device.  The associated launcher script is `rtl2832u`:
