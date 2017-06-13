@@ -55,10 +55,10 @@ image_build = docker build --rm \
 # Everything
 all: $(redhawk_images) $(redhawk_webserver) $(linked_scripts) $(omni)
 all_pulled: $(linked_scripts)
-	$(foreach image,$(all_images),\
+	$(eval result := $(foreach image,$(all_images),\
 		$(shell docker pull $(image):$(VERSION)) \
 		$(shell docker tag $(image):$(VERSION) $(image):latest) \
-		)
+		))
 
 deliver: $(all_images)
 	$(eval result := $(foreach image,$(all_images),\
