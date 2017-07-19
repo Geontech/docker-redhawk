@@ -17,10 +17,9 @@
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 #
 
-FROM geontech/redhawk-runtime:2.0.5
+FROM geontech/redhawk-runtime:2.0.6
 LABEL name="REDHAWK IDE Environment" \
-	description="REDHAWK Integrated Development Environment Runner" \
-	maintainer="Thomas Goodwin <btgoodwin@geontech.com>"
+	description="REDHAWK Integrated Development Environment Runner"
 
 # Install development environment
 RUN yum groupinstall -y "REDHAWK Development" && \

@@ -17,10 +17,9 @@
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 #
 
-FROM geontech/redhawk-runtime:2.0.5
+FROM geontech/redhawk-runtime:2.0.6
 LABEL name="REDHAWK SDR RTL2832U Device" \
-    description="REDHAWK RTL2832U" \
-    maintainer="Thomas Goodwin <btgoodwin@geontech.com>"
+    description="REDHAWK RTL2832U"
 
 RUN yum install -y \
 		redhawk-sdrroot-dev-mgr \
@@ -35,7 +34,7 @@ RUN yum install -y \
     source /etc/profile.d/redhawk-sdrroot.sh && \
     git clone git://github.com/RedhawkSDR/RTL2832U.git && \
     pushd RTL2832U && \
-    git checkout tags/2.0.1 && \
+    git checkout tags/2.0.1-5 && \
     ./build.sh && \
     ./build.sh install && \
     popd && \

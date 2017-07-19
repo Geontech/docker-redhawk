@@ -17,7 +17,7 @@
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 #
 
-FROM geontech/redhawk-runtime:2.0.5
+FROM geontech/redhawk-runtime:2.0.6
 LABEL name="REDHAWK SDR Domain" \
     description="REDHAWK SDR Domain Runner"
 

@@ -17,10 +17,9 @@
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 #
 
-FROM geontech/redhawk-runtime:2.0.5
+FROM geontech/redhawk-runtime:2.0.6
 LABEL name="REDHAWK SDR USRP_UHD Device" \
-    description="REDHAWK USRP_UHD w/ updated UHD driver version (3.10)" \
-    maintainer="Thomas Goodwin <btgoodwin@geontech.com>"
+    description="REDHAWK USRP_UHD w/ updated UHD driver version (3.10)"
 
 # Compile UHD from source
 RUN yum install -y \
@@ -86,7 +85,7 @@ RUN yum install -y \
     source /etc/profile.d/redhawk-sdrroot.sh && \
     git clone git://github.com/RedhawkSDR/USRP_UHD.git && \
     pushd USRP_UHD && \
-    git checkout tags/4.0.1 && \
+    git checkout tags/5.0.0 && \
     ./build.sh && \
     ./build.sh install && \
     popd && \

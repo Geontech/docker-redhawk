@@ -17,10 +17,9 @@
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 #
 
-FROM geontech/redhawk-runtime:2.0.5
+FROM geontech/redhawk-runtime:2.0.6
 LABEL name="Geon Technology's BU353S4 GPS Device" \
-    description="Geon's BU353S4" \
-    maintainer="Thomas Goodwin <btgoodwin@geontech.com>"
+    description="Geon's BU353S4"
 
 # Yum necessities, download nmealib and bu353s4, compile each, remove unused things
 RUN yum install -y \

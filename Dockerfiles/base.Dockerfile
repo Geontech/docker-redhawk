@@ -19,7 +19,7 @@
 
 FROM centos:7
 
-ENV RH_VERSION=2.0.5
+ENV RH_VERSION=2.0.6
 ENV OMNISERVICEIP 127.0.0.1
 
 LABEL name="REDHAWK SDR Base Image" \
@@ -34,7 +34,8 @@ ADD files/geon-redhawk.repo /etc/yum.repos.d/geon-redhawk.repo
 
 # Update, epel, etc. as well as upgraded pyparsing
 # Then add setup supervisord directories
-RUN yum install -y \
+RUN sed -i "s/RH_VERSION/${RH_VERSION}/g" /etc/yum.repos.d/geon-redhawk.repo && \
+    yum install -y \
     curl \
     wget \
     epel-release \

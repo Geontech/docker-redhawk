@@ -17,10 +17,9 @@
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 #
 
-FROM geontech/redhawk-runtime:2.0.5
-LABEL version="2.0.5" \
-    description="REDHAWK GPP Runner" \
-    maintainer="Thomas Goodwin <btgoodwin@geontech.com>"
+FROM geontech/redhawk-runtime:2.0.6
+LABEL name="REDHAWK GPP Device" \
+    description="REDHAWK GPP Runner"
 
 ENV DOMAINNAME ""
 ENV NODENAME   ""

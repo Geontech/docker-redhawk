@@ -17,7 +17,7 @@
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 #
 
-FROM geontech/redhawk-runtime
+FROM geontech/redhawk-runtime:2.0.6
 LABEL name="REST-Python Web Server" \
     description="Geon's Fork of REST-Python" \
     maintainer="Thomas Goodwin <btgoodwin@geontech.com>"
