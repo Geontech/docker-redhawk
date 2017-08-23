@@ -1,0 +1,16 @@
+#!/bin/bash
+# wait-for-domain.sh
+
+set -e
+
+cmd="$@"
+name_list=$(nameclt list) || true
+
+until [[ $name_list == *"$DOMAINNAME"* ]]; do
+  >&2 echo "Domain is unavailable - sleeping"
+  sleep 1
+  name_list=$(nameclt list) || true
+done
+
+>&2 echo "Domain is up - executing command"
+exec $cmd

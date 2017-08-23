@@ -1,0 +1,14 @@
+#!/bin/bash
+# wait-for-omniserver.sh
+
+set -e
+
+cmd="$@"
+
+until nameclt list; do
+  >&2 echo "Omniserver is unavailable - sleeping"
+  sleep 1
+done
+
+>&2 echo "Omniserver is up - executing command"
+exec $cmd

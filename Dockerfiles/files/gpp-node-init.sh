@@ -19,6 +19,9 @@
 #
 set -e
 
+export NODENAME=${NODENAME:-MyGpp_$(hostname)}
+export GPPNAME=${GPPNAME:-GPP_$(hostname)}
+
 if ! [ -d $SDRROOT/dev/nodes/${NODENAME} ]; then
 	echo Configuring GPP Node
 	${SDRROOT}/dev/devices/GPP/cpp/gpp_setup \

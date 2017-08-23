@@ -56,6 +56,7 @@ ADD files/supervisord.conf /etc/supervisor/supervisord.conf
 # Install omni
 RUN yum install -y \
     omniORB-servers \
+    omniORB-utils \
     omniEvents-server && \
     yum -y clean all && \
     \
@@ -65,6 +66,10 @@ RUN yum install -y \
 ADD files/omnicfg-updater.sh /root/omnicfg-updater.sh
 RUN chmod u+x /root/omnicfg-updater.sh && \
     echo "/root/omnicfg-updater.sh" | tee -a /root/.bash_profile
+
+# Polling script for omniEvents dependency on omniNames
+ADD files/wait-for-omninames /usr/local/bin/wait-for-omninames
+RUN chmod u+x /usr/local/bin/wait-for-*
 
 WORKDIR /root
 

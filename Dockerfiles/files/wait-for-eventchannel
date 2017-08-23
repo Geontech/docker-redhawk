@@ -1,0 +1,16 @@
+#!/bin/bash
+# wait-for-eventchannel.sh
+
+set -e
+
+cmd="$@"
+name_list=$(nameclt list) || true
+
+until [[ $name_list == *"EventChannelFactory"* ]]; do
+  >&2 echo "EventChannelFactory is unavailable - sleeping"
+  sleep 1
+  name_list=$(nameclt list) || true
+done
+
+>&2 echo "EventChannelFactory is up - executing command"
+exec $cmd
