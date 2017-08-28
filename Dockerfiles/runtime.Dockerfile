@@ -34,4 +34,9 @@ RUN yum groupinstall -y "REDHAWK Runtime" && \
 	yum clean all -y && \
 	mv /etc/profile.d/redhawk-sdrroot.sh.bak /etc/profile.d/redhawk-sdrroot.sh
 
+# Polling scripts for dependencies on omniserver
+ADD files/wait-for-eventchannel /usr/local/bin/wait-for-eventchannel
+ADD files/wait-for-domain       /usr/local/bin/wait-for-domain
+RUN chmod u+x /usr/local/bin/wait-for-*
+
 CMD ["/bin/bash", "-l"]
