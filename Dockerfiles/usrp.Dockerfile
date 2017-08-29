@@ -109,7 +109,7 @@ ENV USRP_SERIAL     ""
 # Add script for configuring the node
 ADD files/usrp-node-init.sh /root/usrp-node-init.sh
 RUN chmod u+x /root/usrp-node-init.sh && \
-    echo "/root/usrp-node-init.sh" | tee -a /root/.bashrc
+    echo "source /root/usrp-node-init.sh" | tee -a /root/.bashrc
 
 # USRP Supervisord script and exit script
 ADD files/supervisord-usrp.conf /etc/supervisor.d/usrp.conf

@@ -23,6 +23,8 @@ function print_option() {
 	printf " ---> %-20s %-20s\n" $1 $2
 }
 
+export NODENAME=${NODENAME:-MyUsrp_$(hostname)}
+
 USRP_CONFIG_ARGS="--noinplace --domainname=${DOMAINNAME} --nodename=${NODENAME} --usrpname=${USRP_NAME}"
 
 if ! [ -d $SDRROOT/dev/nodes/${NODENAME} ]; then
@@ -46,4 +48,3 @@ if ! [ -d $SDRROOT/dev/nodes/${NODENAME} ]; then
 else
 	echo USRP Node already configured
 fi
-
