@@ -23,6 +23,8 @@ function print_option() {
 	printf " ---> %-20s %-20s\n" $1 $2
 }
 
+export NODENAME=${NODENAME:-MyRtlsdr_$(hostname)}
+
 RTL2832U_CONFIG_ARGS="--noinplace --domainname=${DOMAINNAME} --nodename=${NODENAME}"
 
 if ! [ -d $SDRROOT/dev/nodes/${NODENAME} ]; then
@@ -57,4 +59,3 @@ if ! [ -d $SDRROOT/dev/nodes/${NODENAME} ]; then
 else
 	echo RTL2832U Node already configured
 fi
-

@@ -23,6 +23,8 @@ function print_option() {
 	printf " ---> %-20s %-20s\n" $1 $2
 }
 
+export NODENAME=${NODENAME:-MyGps_$(hostname)}
+
 BU353S4_CONFIG_ARGS="--noinplace --domainname=${DOMAINNAME} --nodename=${NODENAME} --serialport=${GPS_PORT}"
 
 if ! [ -d $SDRROOT/dev/nodes/${NODENAME} ]; then
@@ -32,4 +34,3 @@ if ! [ -d $SDRROOT/dev/nodes/${NODENAME} ]; then
 else
 	echo BU353S4 Node already configured
 fi
-

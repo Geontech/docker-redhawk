@@ -58,7 +58,7 @@ RUN yum install -y \
 
 ENV DOMAINNAME ""
 ENV GPS_PORT   ""
-ENV NODENAME   "" 
+ENV NODENAME   ""
 
 # Set config file to executable
 RUN chmod a+x /var/redhawk/sdr/dev/devices/BU353S4/nodeconfig.py
@@ -66,7 +66,7 @@ RUN chmod a+x /var/redhawk/sdr/dev/devices/BU353S4/nodeconfig.py
 # Add script for configuring the node
 ADD files/bu353s4-node-init.sh /root/bu353s4-node-init.sh
 RUN chmod u+x /root/bu353s4-node-init.sh && \
-	echo "/root/bu353s4-node-init.sh" | tee -a /root/.bashrc
+	echo "source /root/bu353s4-node-init.sh" | tee -a /root/.bashrc
 
 # BU353S4 Supervisord script and 'exit' event listener
 ADD files/supervisord-bu353s4.conf /etc/supervisor.d/bu353s4.conf
