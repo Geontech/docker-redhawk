@@ -68,7 +68,7 @@ You will enter a bash shell as the `redhawk` user.
 Use `volume-manager` to create an SDRROOT volume that can be mounted to the Domain and IDE.
 
     ./volume-manager create sdrroot MY_REDHAWK
-    ./domain start --domain MY_DOMAIN --sdrroot MY_REDHAWK
+    ./domain start MY_DOMAIN --sdrroot MY_REDHAWK
 
 The result will be a Domain with a persistent SDRROOT.
 
