@@ -4,6 +4,8 @@ This repository builds a series of Docker images and scripts for standing up an 
 
 For the USRP image (geontech/redhawk-usrp), the UHD driver is recompiled to a newer version and the USRP_UHD Device is compiled from source against that newer driver.  The result is access to the latest Ettus Research USRPs from the container.
 
+ > **DOCKER:** You must be using at least Docker 17.  This was tested using Docker-CE.
+
 ## Building
 
 To build all images, simply type `make`.  At the command line, you can also specify the variables: `REST_PYTHON` and `REST_PYTHON_BRANCH`, which specifically apply to the `geontech/redhawk-webserver`.
