@@ -26,14 +26,15 @@ ENV NODENAME   ""
 ENV GPPNAME    ""
 
 RUN yum install -y \
-		GPP \
-		GPP-profile && \
-	yum clean all -y
+      fftw \
+      GPP \
+      GPP-profile && \
+    yum clean all -y
 
 # Create the node init script for the GPP
 ADD files/gpp-node-init.sh /root/gpp-node-init.sh
 RUN chmod u+x /root/gpp-node-init.sh && \
-	echo "source /root/gpp-node-init.sh" | tee -a /root/.bashrc
+    echo "source /root/gpp-node-init.sh" | tee -a /root/.bashrc
 
 # Create the supervisord device script and "exit" event listener
 ADD files/supervisord-device.conf /etc/supervisor.d/device.conf
