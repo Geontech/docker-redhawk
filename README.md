@@ -6,9 +6,13 @@ For the USRP image (geontech/redhawk-usrp), the UHD driver is recompiled to a ne
 
  > **DOCKER:** You must be using at least Docker 17.  This was tested using Docker-CE.
 
+## Installing
+
+Run `make` to pull the prebuild images and link the helper scripts.  Depending on your internet connection, this may take several minutes.
+
 ## Building
 
-To build all images, simply type `make`.  At the command line, you can also specify the variables: `REST_PYTHON` and `REST_PYTHON_BRANCH`, which specifically apply to the `geontech/redhawk-webserver`.
+To build all images, simply type `make build`.  At the command line, you can also specify the variables: `REST_PYTHON` and `REST_PYTHON_BRANCH`, which specifically apply to the `geontech/redhawk-webserver`.
 
 You will end up with the following images that are meant't to be run individually.
 

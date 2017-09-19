@@ -50,15 +50,17 @@ image_build = docker build --rm \
 		&& \
 	docker tag $@:$(VERSION) $@:latest
 
-.PHONY: all all_pulled deliver clean $(all_images)
+.PHONY: all build deliver clean $(all_images)
 
-# Everything
-all: $(redhawk_images) $(redhawk_webserver) $(linked_scripts) $(omni)
-all_pulled: $(linked_scripts)
-	$(eval result := $(foreach image,$(all_images),\
-		$(shell docker pull $(image):$(VERSION)) \
-		$(shell docker tag $(image):$(VERSION) $(image):latest) \
-		))
+# Everything, pulled
+all: $(linked_scripts)
+	@for image in $(all_images) ; do \
+		docker pull $$image:$(VERSION) ; \
+		docker tag $$image:$(VERSION) $$image:latest ; \
+	done
+
+# Rebuild from scratch
+build: $(all_images) $(linked_scripts)
 
 deliver: $(all_images)
 	$(eval result := $(foreach image,$(all_images),\
