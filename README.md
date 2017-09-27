@@ -6,6 +6,8 @@ For the USRP image (geontech/redhawk-usrp), the UHD driver is recompiled to a ne
 
  > **DOCKER:** You must be using at least Docker 17.  This was tested using Docker-CE.
 
+ > **OS X Users:** The version of Bash in OS X is frozen in the 3.x series thanks to GPLv3.  If you want to use the scripts, please follow the [special instructions](#macos-notes) below.
+
 ## Installing
 
 Run `make` to pull the prebuild images and link the helper scripts.  Depending on your internet connection, this may take several minutes.
@@ -175,3 +177,53 @@ The `geontech/redhawk-bu353s4` image provides Geon's BU353S4 FEI 2.0 -compliant 
     ./bu353s4 start MyGPS
 
 You can then attach to the GPS port and pull coordinates, time, etc.
+
+## macOS Notes
+
+The Docker Images provided in this tooling work, with some [caveats](#macos-caveats) pertaining to networking and directly-attached hardware.
+
+The provided scripts require Bash 4.x or better and OS X (macOS) does not include a version greater than 3.x because of GPLv3.  Therefore to use the scripts, one must install Bash 4.
+
+A simple route is to install `homebrew` and if necessary, take ownership of `/usr/local` (where it installs), install `bash`, and add it to the available shells.
+
+```bash
+sudo chown -R $(whoami):admin /usr/local
+brew install bash
+echo /usr/local/bin/bash | sudo tee -a /etc/shells
+```
+
+Each user that wants to use the up-to-date version of `bash` can change their default shell by running:
+
+```bash
+chsh -s /usr/local/bin/bash
+```
+
+Re-open the terminal app (or iTerm2, etc.) and `bash -v` should indicate the more recent version:
+
+```
+GNU bash, version 4.4.12(1)-release (x86_64-apple-darwin16.3.0)
+Copyright (C) 2016 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+
+This is free software; you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+```
+
+Please continue on to the [caveats](#macos-caveats) section to see how the limitations of Docker in macOS impact using Docker-REDHAWK.
+
+### macOS Caveats
+
+**REDHAWK IDE**
+
+At this time, the `rhide` script has not been updated to attempt running the container attached to XQuartz in macOS.  If you would like to experiment with this feature and contribute it back to the project, please [see this link](https://fredrikaverpil.github.io/2016/07/31/docker-for-mac-and-gui-applications/) and submit a pull request.
+
+**Networking**
+
+At this time, Docker for macOS uses HyperKit or VirtualBox (depending on your configuration) to run the Docker Daemon.  And in either case, the network configuration behaves like an inconfigurable double-NAT which prevents one from opening the necessary ports for inter-host communication, which is required for being able to network multiple hosts together using OmniORB (REDHAWK's underlying naming service).  This means that until Docker for macOS (and by extension, HyperKit, etc.) support opening the required ports, your macOS system is, unfortunately, a bit of an island vs. other operating system deployments.
+
+_However,_ this does not prevent one from being able to work in the container shell, run builds for REDHAWK (Continuous Integration), or even develop web applications using REST-Python (`webserver`) and expose those to other hosts (since it's a single port).  Moreover the images can be used independently of the scripts, so `docker-compose` and Swarm setups are also possible (if only not being able to connect other hosts to it or vice versa).
+ 
+**USB-attached Devices**
+
+At this time it is untested if there is a way to map USB devices (i.e., like the USRP B205mini) to the VM that runs Docker on macOS.  Doing so in Linux requires running the container `privileged` with the USB bus mounted to the container.  This potential limitation impacts any USB-attached devices including some USRPs (`usrp`) as well as the RTL2832U (`rtl2832u`) and BU353S4 (`bu353s4`).
+
