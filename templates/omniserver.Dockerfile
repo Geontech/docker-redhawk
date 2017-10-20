@@ -17,26 +17,18 @@
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 #
 
-FROM geontech/redhawk-base:2.0.6
-LABEL name="REDHAWK SDR Runtime" \
-    description="REDHAWK SDR Runtime dependencies"
+FROM geontech/redhawk-base:VERSION
 
-# Install REDHAWK Runtime, no GPP, domain, or boot scripts.
-RUN yum groupinstall -y "REDHAWK Runtime" && \
-	cp /etc/profile.d/redhawk-sdrroot.sh /etc/profile.d/redhawk-sdrroot.sh.bak && \
-	yum remove -y \
-		GPP \
-		GPP-profile \
-		omniEvents-bootscripts \
-		redhawk-sdrroot-dev-mgr \
-		redhawk-sdrroot-dom-mgr \
-		redhawk-sdrroot-dom-profile && \
-	yum clean all -y && \
-	mv /etc/profile.d/redhawk-sdrroot.sh.bak /etc/profile.d/redhawk-sdrroot.sh
+LABEL name="OmniORB Servers" \
+    description="Omni* Services Runner"
 
-# Polling scripts for dependencies on omniserver
-ADD files/wait-for-eventchannel /usr/local/bin/wait-for-eventchannel
-ADD files/wait-for-domain       /usr/local/bin/wait-for-domain
-RUN chmod u+x /usr/local/bin/wait-for-*
+# Create log directories and add supervisord config for omni.
+RUN mkdir -p /var/log/omniORB && \
+	mkdir -p /var/log/omniEvents
+ADD files/supervisord-omniserver.conf /etc/supervisor.d/omniserver.conf
+ADD files/kill_supervisor.py /usr/bin/kill_supervisor.py
+RUN chmod u+x /usr/bin/kill_supervisor.py
 
-CMD ["/bin/bash", "-l"]
+EXPOSE 2809 11169
+
+CMD ["/usr/bin/supervisord"]

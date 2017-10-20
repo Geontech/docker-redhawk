@@ -17,7 +17,7 @@
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 #
 
-FROM geontech/redhawk-runtime:2.0.6
+FROM geontech/redhawk-runtime:VERSION
 LABEL name="Geon Technology's BU353S4 GPS Device" \
     description="Geon's BU353S4"
 

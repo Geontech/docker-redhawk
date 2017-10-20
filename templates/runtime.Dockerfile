@@ -17,28 +17,26 @@
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 #
 
-FROM geontech/redhawk-runtime:2.0.6
-LABEL name="REDHAWK GPP Device" \
-    description="REDHAWK GPP Runner"
+FROM geontech/redhawk-base:VERSION
+LABEL name="REDHAWK SDR Runtime" \
+    description="REDHAWK SDR Runtime dependencies"
 
-ENV DOMAINNAME ""
-ENV NODENAME   ""
-ENV GPPNAME    ""
+# Install REDHAWK Runtime, no GPP, domain, or boot scripts.
+RUN yum groupinstall -y "REDHAWK Runtime" && \
+	cp /etc/profile.d/redhawk-sdrroot.sh /etc/profile.d/redhawk-sdrroot.sh.bak && \
+	yum remove -y \
+		GPP \
+		GPP-profile \
+		omniEvents-bootscripts \
+		redhawk-sdrroot-dev-mgr \
+		redhawk-sdrroot-dom-mgr \
+		redhawk-sdrroot-dom-profile && \
+	yum clean all -y && \
+	mv /etc/profile.d/redhawk-sdrroot.sh.bak /etc/profile.d/redhawk-sdrroot.sh
 
-RUN yum install -y \
-      fftw \
-      GPP \
-      GPP-profile && \
-    yum clean all -y
+# Polling scripts for dependencies on omniserver
+ADD files/wait-for-eventchannel /usr/local/bin/wait-for-eventchannel
+ADD files/wait-for-domain       /usr/local/bin/wait-for-domain
+RUN chmod u+x /usr/local/bin/wait-for-*
 
-# Create the node init script for the GPP
-ADD files/gpp-node-init.sh /root/gpp-node-init.sh
-RUN chmod u+x /root/gpp-node-init.sh && \
-    echo "source /root/gpp-node-init.sh" | tee -a /root/.bashrc
-
-# Create the supervisord device script and "exit" event listener
-ADD files/supervisord-device.conf /etc/supervisor.d/device.conf
-ADD files/kill_supervisor.py /usr/bin/kill_supervisor.py
-RUN chmod ug+x /usr/bin/kill_supervisor.py
-
-CMD ["/usr/bin/supervisord"]
+CMD ["/bin/bash", "-l"]

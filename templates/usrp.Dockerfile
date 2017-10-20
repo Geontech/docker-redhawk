@@ -17,7 +17,7 @@
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 #
 
-FROM geontech/redhawk-runtime:2.0.6
+FROM geontech/redhawk-runtime:VERSION
 LABEL name="REDHAWK SDR USRP_UHD Device" \
     description="REDHAWK USRP_UHD w/ updated UHD driver version (3.10)"
 

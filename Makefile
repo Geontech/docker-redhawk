@@ -17,7 +17,7 @@
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 #
 
-VERSION := 2.0.6
+VERSION := $(or $(VERSION), $(VERSION), 2.0.7)
 
 image_prefix := geontech/redhawk
 base := $(image_prefix)-base
@@ -41,10 +41,14 @@ REST_PYTHON := http://github.com/GeonTech/rest-python.git
 REST_PYTHON_BRANCH := master
 
 # Macros for querying an image vs. building one.
+image_dockerfile = $(shell echo "$(subst $(image_prefix)-,,$1).Dockerfile")
+image_tmpl = $(shell echo "./templates/$(call image_dockerfile,$1)")
+image_def = $(shell echo "./Dockerfiles/$(call image_dockerfile,$1)")
+image_patch = $(shell sed -E "s/(geontech.+\:)(.+)/\1"$(VERSION)"/g" $(call image_tmpl,$1) > $(call image_def,$1))
 image_check = $(strip $(shell docker images -q $1))
 image_build = docker build --rm \
 		$2 \
-		-f ./Dockerfiles/$(subst $(image_prefix)-,,$1).Dockerfile \
+		-f $(call image_def,$1) \
 		-t $1:$(VERSION) \
 		./Dockerfiles \
 		&& \
@@ -70,15 +74,19 @@ deliver: $(all_images)
 
 # Image building targets
 $(base):
+	@sed -E "s/(RH_VERSION=)(.+)/\1"$(VERSION)"/g" $(call image_tmpl,$@) > $(call image_def,$@)
 	$(call image_build,$@)
 
 $(omni) $(runtime): $(base)
+	$(call image_patch,$@)
 	$(call image_build,$@)
 
 $(redhawk_images): $(runtime)
+	$(call image_patch,$@)
 	$(call image_build,$@)
 
 $(redhawk_webserver): $(runtime)
+	$(call image_patch,$@)
 	$(eval BUILD_ARGS = --build-arg REST_PYTHON=$(REST_PYTHON) --build-arg REST_PYTHON_BRANCH=$(REST_PYTHON_BRANCH))
 	@echo Build Arguments: ${BUILD_ARGS}
 	$(call image_build,$@,$(BUILD_ARGS))

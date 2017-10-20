@@ -17,18 +17,23 @@
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 #
 
-FROM geontech/redhawk-base:2.0.6
+FROM geontech/redhawk-runtime:VERSION
+LABEL name="REDHAWK SDR Domain" \
+    description="REDHAWK SDR Domain Runner"
 
-LABEL name="OmniORB Servers" \
-    description="Omni* Services Runner"
+RUN yum install -y \
+		redhawk-basic-components \
+		redhawk-sdrroot-dom-mgr \
+		redhawk-sdrroot-dom-profile && \
+	yum clean all -y
 
-# Create log directories and add supervisord config for omni.
-RUN mkdir -p /var/log/omniORB && \
-	mkdir -p /var/log/omniEvents
-ADD files/supervisord-omniserver.conf /etc/supervisor.d/omniserver.conf
+VOLUME /var/redhawk/sdr
+
+ENV DOMAINNAME ""
+
+# Supervisord configuration script and "exit" listener
+ADD files/supervisord-domain.conf /etc/supervisor.d/domain.conf
 ADD files/kill_supervisor.py /usr/bin/kill_supervisor.py
-RUN chmod u+x /usr/bin/kill_supervisor.py
-
-EXPOSE 2809 11169
+RUN chmod ug+x /usr/bin/kill_supervisor.py
 
 CMD ["/usr/bin/supervisord"]
