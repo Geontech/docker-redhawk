@@ -22,7 +22,7 @@ LABEL name="REDHAWK SDR RTL2832U Device" \
     description="REDHAWK RTL2832U"
 
 RUN yum install -y \
-		redhawk-sdrroot-dev-mgr \
+        redhawk-sdrroot-dev-mgr \
         redhawk-devel \
         libusb1-devel \
         librtlsdr \
@@ -57,11 +57,13 @@ ENV RTL_PRODUCT ""
 ENV RTL_SERIAL  ""
 ENV RTL_INDEX   ""
 ENV NODENAME    ""
+ENV NODEFLAGS   ""
 
 # Add script for configuring the node
 ADD files/rtl2832u-node-init.sh /root/rtl2832u-node-init.sh
+ADD files/rtl2832u-nodeconfig.patch /root/rtl2832u-nodeconfig.patch
 RUN chmod u+x /root/rtl2832u-node-init.sh && \
-	echo "source /root/rtl2832u-node-init.sh" | tee -a /root/.bashrc
+    echo "source /root/rtl2832u-node-init.sh" | tee -a /root/.bashrc
 
 # RTL2832U Supervisord script
 ADD files/supervisord-rtl2832u.conf /etc/supervisor.d/rtl2832u.conf

@@ -23,7 +23,7 @@ function print_option() {
 	printf " ---> %-20s %-20s\n" $1 $2
 }
 
-export NODENAME=${NODENAME:-MyUsrp_$(hostname)}
+export NODENAME=${NODENAME:-MyUsrp_$(hostname -s)}
 
 USRP_CONFIG_ARGS="--noinplace --domainname=${DOMAINNAME} --nodename=${NODENAME} --usrpname=${USRP_NAME}"
 
@@ -44,7 +44,11 @@ if ! [ -d $SDRROOT/dev/nodes/${NODENAME} ]; then
 		USRP_CONFIG_ARGS="${USRP_CONFIG_ARGS} --usrpserial=${USRP_SERIAL}"
 	fi
 
-	${SDRROOT}/dev/devices/rh/USRP_UHD/nodeconfig.py ${USRP_CONFIG_ARGS}
+	# Patch the nodeconfig.py script so we can pass simple parameters on the command line with $NODEFLAGS
+	patch ${SDRROOT}/dev/devices/rh/USRP_UHD/nodeconfig.py < /root/usrp-nodeconfig.patch
+
+	# Configure the node
+	${SDRROOT}/dev/devices/rh/USRP_UHD/nodeconfig.py ${USRP_CONFIG_ARGS} ${NODEFLAGS}
 else
 	echo USRP Node already configured
 fi

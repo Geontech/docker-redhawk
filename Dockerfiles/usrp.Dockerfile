@@ -95,12 +95,14 @@ RUN yum install -y \
         redhawk-devel \
         autoconf \
         automake && \
+    yum install -y patch && \
     yum clean all -y && \
     /usr/local/lib64/uhd/utils/uhd_images_downloader.py
 
 
 ENV DOMAINNAME      ""
 ENV NODENAME        ""
+ENV NODEFLAGS       ""
 ENV USRP_IP_ADDRESS ""
 ENV USRP_TYPE       ""
 ENV USRP_NAME       ""
@@ -108,6 +110,7 @@ ENV USRP_SERIAL     ""
 
 # Add script for configuring the node
 ADD files/usrp-node-init.sh /root/usrp-node-init.sh
+ADD files/usrp-nodeconfig.patch /root/usrp-nodeconfig.patch
 RUN chmod u+x /root/usrp-node-init.sh && \
     echo "source /root/usrp-node-init.sh" | tee -a /root/.bashrc
 

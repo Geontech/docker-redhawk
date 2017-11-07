@@ -23,7 +23,7 @@ function print_option() {
 	printf " ---> %-20s %-20s\n" $1 $2
 }
 
-export NODENAME=${NODENAME:-MyRtlsdr_$(hostname)}
+export NODENAME=${NODENAME:-MyRtlsdr_$(hostname -s)}
 
 RTL2832U_CONFIG_ARGS="--noinplace --domainname=${DOMAINNAME} --nodename=${NODENAME}"
 
@@ -55,7 +55,11 @@ if ! [ -d $SDRROOT/dev/nodes/${NODENAME} ]; then
 		RTL2832U_CONFIG_ARGS="${RTL2832U_CONFIG_ARGS} --rtlindex=${RTL_INDEX}"
 	fi
 
-	${SDRROOT}/dev/devices/rh/RTL2832U/nodeconfig.py ${RTL2832U_CONFIG_ARGS}
+	# Patch the nodeconfig.py script so we can pass simple parameters on the command line with $NODEFLAGS
+	patch ${SDRROOT}/dev/devices/rh/RTL2832U/nodeconfig.py < /root/rtl2832u-nodeconfig.patch
+
+	# Configure the node
+	${SDRROOT}/dev/devices/rh/RTL2832U/nodeconfig.py ${RTL2832U_CONFIG_ARGS} ${NODEFLAGS}
 else
 	echo RTL2832U Node already configured
 fi
