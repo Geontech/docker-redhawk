@@ -24,6 +24,11 @@ LABEL name="REDHAWK IDE Environment" \
 # Install development environment
 RUN yum groupinstall -y "REDHAWK Development" && \
 	yum install -y \
+		rh.blueFileLib-devel \
+		rh.dsp-devel \
+		rh.fftlib-devel \
+		rh.RedhawkDevUtils-devel \
+		rh.VITA49-devel \
 		PackageKit-gtk-module \
 		libcanberra-gtk2 \
 		sudo && \
