@@ -17,26 +17,18 @@
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 #
 
-FROM geontech/redhawk-runtime:2.0.6
-LABEL name="REDHAWK IDE Environment" \
-	description="REDHAWK Integrated Development Environment Runner"
+FROM geontech/redhawk-base:VERSION
 
-# Install development environment
-RUN yum groupinstall -y "REDHAWK Development" && \
-	yum install -y \
-		PackageKit-gtk-module \
-		libcanberra-gtk2 \
-		sudo && \
-	yum autoremove -y && \
-	yum clean all -y
+LABEL name="OmniORB Servers" \
+    description="Omni* Services Runner"
 
-ADD files/rhide-init.sh /opt/rhide-init.sh
-RUN chmod a+x /opt/rhide-init.sh
+# Create log directories and add supervisord config for omni.
+RUN mkdir -p /var/log/omniORB && \
+	mkdir -p /var/log/omniEvents
+ADD files/supervisord-omniserver.conf /etc/supervisor.d/omniserver.conf
+ADD files/kill_supervisor.py /usr/bin/kill_supervisor.py
+RUN chmod u+x /usr/bin/kill_supervisor.py
 
-ENV RHUSER_ID 54321
+EXPOSE 2809 11169
 
-VOLUME /var/redhawk/sdr
-VOLUME /home/user/workspace
-
-# Run the RHIDE init script
-CMD ["/bin/bash", "-l", "-c", "/opt/rhide-init.sh"]
+CMD ["/usr/bin/supervisord"]

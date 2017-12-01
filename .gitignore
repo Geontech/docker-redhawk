@@ -1,12 +1,16 @@
-omniserver
+# Ignore processed templates
+Dockerfiles/*.Dockerfile
+
+# Ignore linked scripts
+bu353s4
 domain
-sdrroot
-login
 gpp
+login
+omniserver
 rhide
+rtl2832u
+sdrroot
+show-log
+usrp
 volume-manager
 webserver
-usrp
-rtl2832u
-show-log
-bu353s4

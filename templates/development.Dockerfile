@@ -17,26 +17,31 @@
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 #
 
-FROM geontech/redhawk-base:2.0.6
-LABEL name="REDHAWK SDR Runtime" \
-    description="REDHAWK SDR Runtime dependencies"
+FROM geontech/redhawk-runtime:VERSION
+LABEL name="REDHAWK IDE Environment" \
+	description="REDHAWK Integrated Development Environment Runner"
 
-# Install REDHAWK Runtime, no GPP, domain, or boot scripts.
-RUN yum groupinstall -y "REDHAWK Runtime" && \
-	cp /etc/profile.d/redhawk-sdrroot.sh /etc/profile.d/redhawk-sdrroot.sh.bak && \
-	yum remove -y \
-		GPP \
-		GPP-profile \
-		omniEvents-bootscripts \
-		redhawk-sdrroot-dev-mgr \
-		redhawk-sdrroot-dom-mgr \
-		redhawk-sdrroot-dom-profile && \
-	yum clean all -y && \
-	mv /etc/profile.d/redhawk-sdrroot.sh.bak /etc/profile.d/redhawk-sdrroot.sh
+# Install development environment
+RUN yum groupinstall -y "REDHAWK Development" && \
+	yum install -y \
+		rh.blueFileLib-devel \
+		rh.dsp-devel \
+		rh.fftlib-devel \
+		rh.RedhawkDevUtils-devel \
+		rh.VITA49-devel \
+		PackageKit-gtk-module \
+		libcanberra-gtk2 \
+		sudo && \
+	yum autoremove -y && \
+	yum clean all -y
 
-# Polling scripts for dependencies on omniserver
-ADD files/wait-for-eventchannel /usr/local/bin/wait-for-eventchannel
-ADD files/wait-for-domain       /usr/local/bin/wait-for-domain
-RUN chmod u+x /usr/local/bin/wait-for-*
+ADD files/rhide-init.sh /opt/rhide-init.sh
+RUN chmod a+x /opt/rhide-init.sh
 
-CMD ["/bin/bash", "-l"]
+ENV RHUSER_ID 54321
+
+VOLUME /var/redhawk/sdr
+VOLUME /home/user/workspace
+
+# Run the RHIDE init script
+CMD ["/bin/bash", "-l", "-c", "/opt/rhide-init.sh"]

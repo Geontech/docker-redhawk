@@ -6,11 +6,13 @@ For the USRP image (geontech/redhawk-usrp), the UHD driver is recompiled to a ne
 
  > **DOCKER:** You must be using at least Docker 17.  This was tested using Docker-CE.
 
- > **OS X Users:** The version of Bash in OS X is frozen in the 3.x series thanks to GPLv3.  If you want to use the scripts, please follow the [special instructions](#macos-notes) below.
+ > **macOS / OS X Users:** The version of Bash in macOS is frozen in the 3.x series, thanks to GPLv3.  If you want to use the scripts, please follow the [special instructions](#macos-notes) below.
 
 ## Installing
 
 Run `make` to pull the prebuild images and link the helper scripts.  Depending on your internet connection, this may take several minutes.
+
+Please also [see the special notes](#special-notes).
 
 ## Building
 
@@ -45,6 +47,14 @@ The remaining images are derived and come with helper scripts for deploying your
  * `volume-manager`: Creates or deletes Docker volumes labeled for use as an SDRROOT or a development (IDE) Workspace.
  * `rhide`: Runs an instance of the REDHAWK IDE with named SDRROOT and workspace (Docker volume or host file system).
  * `webserver`: Manages an instance of a REST-Python server.
+
+Please also [see the special notes](#special-notes).
+
+## Special Notes
+
+This Makefile supports a default `VERSION` (i.e., `VERSION=2.0.7 make ...`) which will attempt to build the images for that version of REDHAWK SDR.  This does not mean this particular commit of the repository is backwards compatible to all versions of REDHAWK SDR at this time.  This variable is provided as a convenience for testing if the build will succeed on _newer_ minor and patch releases from the current tagged release.  
+
+If you are interested in previous versions of REDHAWK SDR, please pull the associated tag (i.e., `git checkout 2.0.6-1` for 2.0.6, _Docker-REDHAWK_ patch release #1).
 
 ## Usage
 
@@ -182,7 +192,7 @@ You can then attach to the GPS port and pull coordinates, time, etc.
 
 The Docker Images provided in this tooling work, with some [caveats](#macos-caveats) pertaining to networking and directly-attached hardware.
 
-The provided scripts require Bash 4.x or better and OS X (macOS) does not include a version greater than 3.x because of GPLv3.  Therefore to use the scripts, one must install Bash 4.
+The provided scripts require Bash 4.x or better and macOS (OS X) does not include a version greater than 3.x because of GPLv3.  Therefore to use the scripts, one must install Bash 4.
 
 A simple route is to install `homebrew` and if necessary, take ownership of `/usr/local` (where it installs), install `bash`, and add it to the available shells.
 

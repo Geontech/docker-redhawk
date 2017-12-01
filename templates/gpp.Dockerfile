@@ -17,22 +17,27 @@
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 #
 
-FROM geontech/redhawk-runtime:2.0.6
-LABEL name="REDHAWK SDR Domain" \
-    description="REDHAWK SDR Domain Runner"
-
-RUN yum install -y \
-		redhawk-basic-components \
-		redhawk-sdrroot-dom-mgr \
-		redhawk-sdrroot-dom-profile && \
-	yum clean all -y
-
-VOLUME /var/redhawk/sdr
+FROM geontech/redhawk-runtime:VERSION
+LABEL name="REDHAWK GPP Device" \
+    description="REDHAWK GPP Runner"
 
 ENV DOMAINNAME ""
+ENV NODENAME   ""
+ENV GPPNAME    ""
 
-# Supervisord configuration script and "exit" listener
-ADD files/supervisord-domain.conf /etc/supervisor.d/domain.conf
+RUN yum install -y \
+      fftw \
+      GPP \
+      GPP-profile && \
+    yum clean all -y
+
+# Create the node init script for the GPP
+ADD files/gpp-node-init.sh /root/gpp-node-init.sh
+RUN chmod u+x /root/gpp-node-init.sh && \
+    echo "source /root/gpp-node-init.sh" | tee -a /root/.bashrc
+
+# Create the supervisord device script and "exit" event listener
+ADD files/supervisord-device.conf /etc/supervisor.d/device.conf
 ADD files/kill_supervisor.py /usr/bin/kill_supervisor.py
 RUN chmod ug+x /usr/bin/kill_supervisor.py
 

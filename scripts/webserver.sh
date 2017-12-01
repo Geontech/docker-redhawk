@@ -65,7 +65,18 @@ function print_status () {
 		if [ $? -eq 0 ]; then
 			IP="$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${CONTAINER_NAME})"
 			if [[ $IP == "" ]]; then
-				IP="$(hostname -I | grep -oP '^(\d{1,3}\.?){4}')"
+				HOST_IP="$(hostname -I 2> /dev/null)"
+				if [ $? -eq 0 ]; then
+					IP="$(echo ${HOST_IP} | grep -oP '^(\d{1,3}\.?){4}')"
+				else
+					for mac_en in {0..4}; do
+						# Might be OS X
+						IP="$(ipconfig getifaddr en${mac_en})"
+						if [ $? -eq 0 ]; then
+							break;
+						fi
+					done
+				fi
 			fi
 		fi
 		echo ${CONTAINER_NAME} is at: http://${IP}:8080
