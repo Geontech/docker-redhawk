@@ -92,7 +92,7 @@ The result will be a Domain with a persistent SDRROOT.
 
 The `geontech/redhawk-development` image provides the development libraries necessary to develop components and devices.  Use the `rhide` script to map your SDRROOT volume and workspace (absolute path or volume name):
 
-    ./rhide --sdrroot MY_REDHAWK --workspace /home/me/workspace
+    ./rhide run --sdrroot MY_REDHAWK --workspace /home/me/workspace
 
 ## REST-Python Web Server
 
@@ -225,7 +225,7 @@ Please continue on to the [caveats](#macos-caveats) section to see how the limit
 
 **REDHAWK IDE**
 
-At this time, the `rhide` script has not been updated to attempt running the container attached to XQuartz in macOS.  If you would like to experiment with this feature and contribute it back to the project, please [see this link](https://fredrikaverpil.github.io/2016/07/31/docker-for-mac-and-gui-applications/) and submit a pull request.
+At this time, the implementation follows [this link](https://fredrikaverpil.github.io/2016/07/31/docker-for-mac-and-gui-applications/).  You will need to ensure XQuartz is installed (use `homebrew` as described in that link) and its preferences set to allow connections from network clients.  The rest of the linked document is taken care of automatically by the rhide script (trying to get your IP, launching XQuartz, add the IP to `xhost`, etc.).
 
 **Networking**
 
