@@ -28,7 +28,7 @@ echo Setting OmniORB Service IP to: $OMNISERVICEIP
 sed -i "s/127\.0\.0\.1/$OMNISERVICEIP/g" /etc/omniORB.cfg
 
 # If OMNISERVICEPORTS is set, patch in the related command
-if [ ! -z ${OMNISERVICEPORTS+x} ] && [ ! $(grep "giop:tcp::" /etc/omniORB.cfg)]; then
+if [ ! -z ${OMNISERVICEPORTS+x} ] && [ ! $(grep "giop:tcp::" /etc/omniORB.cfg) ]; then
     echo Setting OmniORB Port Range to: $OMNISERVICEPORTS
     echo "giop:tcp::${OMNISERVICEPORTS}" >> /etc/omniORB.cfg
 fi
