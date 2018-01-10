@@ -237,3 +237,10 @@ _However,_ this does not prevent one from being able to work in the container sh
 
 At this time it is untested if there is a way to map USB devices (i.e., like the USRP B205mini) to the VM that runs Docker on macOS.  Doing so in Linux requires running the container `privileged` with the USB bus mounted to the container.  This potential limitation impacts any USB-attached devices including some USRPs (`usrp`) as well as the RTL2832U (`rtl2832u`) and BU353S4 (`bu353s4`).
 
+## Controlling OmniORB
+
+There are two environment variables defined starting at the `geontech/redhawk-base` image which define the container's OmniORB configuration: `OMNISERVICEIP` and `OMNISERVICEPORTS`.   
+
+The `OMNISERVICEIP` should point to your OmniORB Naming service.  It should be set to the IP address or resolvable network name (FQDN) for that service.
+
+The `OMNISERVICEPORTS` adds a configuration parameter to the OmniORB configuration to constrain the ports available to the service (`giop:tcp::...`).  This can greatly simplify firewall configurations at the host system as well as enable inter-system communication such as attaching a remote device to a Docker-Compose -based Domain and subsystems.  Specify it as a range of port numbers that will not conflict on the host system, e.g.: 5000-5100.  If exposing a Docker-Compose -based system to other systems, ensure these ranges do not overlap with other hosted containers or the host. 
