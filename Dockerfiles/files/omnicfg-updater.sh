@@ -30,5 +30,5 @@ sed -i "s/127\.0\.0\.1/$OMNISERVICEIP/g" /etc/omniORB.cfg
 # If OMNISERVICEPORTS is set, patch in the related command
 if [ ! -z ${OMNISERVICEPORTS} ] && [ ! $(grep "giop:tcp::" /etc/omniORB.cfg) ]; then
     echo Setting OmniORB Port Range to: $OMNISERVICEPORTS
-    echo "giop:tcp::${OMNISERVICEPORTS}" >> /etc/omniORB.cfg
+    echo "endPoint default = giop:tcp::${OMNISERVICEPORTS}" >> /etc/omniORB.cfg
 fi
