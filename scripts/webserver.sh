@@ -163,11 +163,16 @@ if [[ $COMMAND == "start" ]]; then
 		exit 0
 	else
 		echo Starting ${CONTAINER_NAME} ...
+
+		# If mac, switch to port exposure vs. --network host
+		NETWORK_ARGS="-e REST_PYTHON_PORT=${REST_PYTHON_PORT} --network host"
+		if [ "$(uname -s)" == "Darwin" ]; then
+			NETWORK_ARGS="-p ${REST_PYTHON_PORT}:8080"
+		fi
 		docker run --rm -d \
 			-e OMNISERVICEIP=${OMNISERVER} \
-			-e REST_PYTHON_PORT=${REST_PYTHON_PORT} \
+			${NETWORK_ARGS} \
 			${REST_PYTHON_VOLUME} \
-			--network host \
 			--name ${CONTAINER_NAME} ${IMAGE_NAME} &> /dev/null
 		
 		# Verify it's running

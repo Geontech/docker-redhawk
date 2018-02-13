@@ -291,7 +291,7 @@ case ${COMMAND} in
                     ${SDRROOT_CMD} \
                     ${WORKSPACE_CMD} \
                     -v $X11_UNIX:$X11_UNIX \
-                    --net host \
+                    -P \
                     --name ${CONTAINER_NAME} \
                     ${IMAGE_NAME} &> /dev/null
                 ;;

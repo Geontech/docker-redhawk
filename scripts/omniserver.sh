@@ -120,8 +120,15 @@ if [[ $COMMAND == "start" ]]; then
 		exit 0
 	else
 		echo Starting ${CONTAINER_NAME} ...
+
+		# If mac, switch to port exposure vs. --network host
+		NETWORK_ARGS="--network host"
+		if [ "$(uname -s)" == "Darwin" ]; then
+			NETWORK_ARGS="-p 2809:2809 -p 11169:11169"
+		fi
+
 		docker run --rm -d \
-			--network host \
+			${NETWORK_ARGS} \
 			--name ${CONTAINER_NAME} ${IMAGE_NAME} &> /dev/null
 		
 		# Verify it's running

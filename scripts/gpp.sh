@@ -172,12 +172,19 @@ if [[ $COMMAND == "start" ]]; then
 		*)
 			# Does not exist (expected), create it.
 			echo Connecting to omniserver: $OMNISERVER
+
+			# If mac, switch to port exposure vs. --network host
+			NETWORK_ARGS="--network host"
+			if [ "$(uname -s)" == "Darwin" ]; then
+				NETWORK_ARGS="-P"
+			fi
+			
 			docker run --rm -d \
-			    -e GPPNAME=${GPP_NAME} \
-			    -e NODENAME=${NODE_NAME} \
-			    -e DOMAINNAME=${DOMAIN_NAME} \
-			    -e OMNISERVICEIP=${OMNISERVER} \
-			    --net host \
+				-e GPPNAME=${GPP_NAME} \
+				-e NODENAME=${NODE_NAME} \
+				-e DOMAINNAME=${DOMAIN_NAME} \
+				-e OMNISERVICEIP=${OMNISERVER} \
+				${NETWORK_ARGS} \
 				--name ${CONTAINER_NAME} \
 				${IMAGE_NAME} &> /dev/null
 
