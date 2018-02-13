@@ -17,7 +17,7 @@
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 #
 
-VERSION := $(or $(VERSION), $(VERSION), 2.0.7)
+VERSION := $(or $(VERSION), $(VERSION), 2.0.8)
 
 image_prefix := geontech/redhawk
 base := $(image_prefix)-base
