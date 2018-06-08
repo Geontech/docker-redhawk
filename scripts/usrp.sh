@@ -202,14 +202,14 @@ if [[ $COMMAND == "start" ]]; then
 	fi
 
 	# Verify at least one of the usrp options has been set
-	if [ -z ${USRP_NAME+x} ] && [ -z ${USRP_TYPE+x} ] && [ -z ${USRP_SERIAL+x} ] && [ -z ${USRP_IP+x} ] ]; then
+	if [ -z ${USRP_NAME+x} ] && [ -z ${USRP_TYPE+x} ] && [ -z ${USRP_SERIAL+x} ] && [ -z ${USRP_IP+x} ]; then
 		usage
 		echo ERROR: At least one of the --usrp... options must be specified to find the device
 		exit 1
 	fi
 
 	# If usrptype is b100, b200, the USB option must be set.
-	USB_DEVIC=""
+	USB_DEVICE=""
 	case ${USRP_TYPE} in
 		b100) ;&
 		b200)
