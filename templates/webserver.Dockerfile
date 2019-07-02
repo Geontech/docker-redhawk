@@ -23,7 +23,7 @@ LABEL name="REST-Python Web Server" \
     maintainer="Thomas Goodwin <btgoodwin@geontech.com>"
 
 # Build-time configurable variables
-ARG REST_PYTHON=http://github.com/GeonTech/rest-python.git
+ARG REST_PYTHON=https://github.com/GeonTech/rest-python.git
 ARG REST_PYTHON_BRANCH=master
 ARG REST_PYTHON_PORT=8080
 
