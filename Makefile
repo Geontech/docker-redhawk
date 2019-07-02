@@ -37,7 +37,7 @@ reversed := $(redhawk_webserver) $(redhawk_images) $(runtime) $(omni) $(base)
 linked_scripts := omniserver domain sdrroot login gpp rhide volume-manager webserver usrp rtl2832u bu353s4 show-log
 
 # Default REST-python server and branch
-REST_PYTHON := http://github.com/GeonTech/rest-python.git
+REST_PYTHON := https://github.com/GeonTech/rest-python.git
 REST_PYTHON_BRANCH := master
 
 # Macros for querying an image vs. building one.
