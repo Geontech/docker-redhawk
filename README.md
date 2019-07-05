@@ -41,9 +41,9 @@ The remaining images are derived and come with helper scripts for deploying your
  * `omniserver`: Manages an instance of the OmniORB services (locally to the Docker host, optional).
  * `domain`: Manages REDHAWK Domain instances.
  * `gpp`: Starts or stops a GPP for the named domain and external OmniServer IP address.
- * `rtl2832u`: Manages [RTL2832U](http://github.com/redhawksdr/RTL2832U) Nodes (USB-attached devices).
- * `usrp`: Manages [USRP_UHD](http://github.com/redhawksdr/USRP_UHD) Nodes (USB- or network-attached devices).
- * `bu353s4`: Manages [BU353S4](http://github.com/geontech/BU353S4) Nodes (USB serial).
+ * `rtl2832u`: Manages [RTL2832U](https://github.com/redhawksdr/RTL2832U) Nodes (USB-attached devices).
+ * `usrp`: Manages [USRP_UHD](https://github.com/redhawksdr/USRP_UHD) Nodes (USB- or network-attached devices).
+ * `bu353s4`: Manages [BU353S4](https://github.com/geontech/BU353S4) Nodes (USB serial).
  * `volume-manager`: Creates or deletes Docker volumes labeled for use as an SDRROOT or a development (IDE) Workspace.
  * `rhide`: Runs an instance of the REDHAWK IDE with named SDRROOT and workspace (Docker volume or host file system).
  * `webserver`: Manages an instance of a REST-Python server.
@@ -112,16 +112,16 @@ Additionally, if an alternate version of REST-Python should be mounted, use `--r
 
 Building the REST-Python `geontech/redhawk-webserver` image has a two options:
 
- * `REST_PYTHON`: URL to a git server where the REST-Python source is located (default is [Geon's](http://github.com/geontech/rest-python)).
+ * `REST_PYTHON`: URL to a git server where the REST-Python source is located (default is [Geon's](https://github.com/geontech/rest-python)).
  * `REST_PYTHON_BRANCH`: Branch name of the preferred REST-Python source tree (default is master).
 
 Specifying no options (`make geontech/redhawk-webserver`) bakes in the default REST-Python server and branch.  The above options can be specified by passing the variables at make time:
 
-    make geontech/redhawk-webserver REST_PYTHON=http://my_other_target/repo
+    make geontech/redhawk-webserver REST_PYTHON=https://my_other_target/repo
 
 ## Device Node Controllers
 
-The following devices have their own images, launching scripts, etc. to facilitate rapid development and integration with hardware.  The included devices are the REDHAWK SDR community's GPP, USRP_UHD and RTL2832U as well as Geon's [BU353S4](http://github.com/geontech/BU353S4).
+The following devices have their own images, launching scripts, etc. to facilitate rapid development and integration with hardware.  The included devices are the REDHAWK SDR community's GPP, USRP_UHD and RTL2832U as well as Geon's [BU353S4](https://github.com/geontech/BU353S4).
 
 In each case, similar to running `./domain` with no arguments, each of these device launchers will also print a status message for all running instances of their respecive images.
 
