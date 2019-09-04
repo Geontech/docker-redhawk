@@ -46,14 +46,17 @@ function usage () {
 	cat <<EOF
 
 Usage: $0 start|stop NODE_NAME
-	[-d|--domain  DOMAIN_NAME] Domain Name, default is REDHAWK_DEV
-	[-o|--omni    OMNISERVER]  IP to the OmniServer (detected: ${OMNISERVER})
-	[--usrptype   USRP_TYPE]   USRP type according to UHD (b200, etc., optional)
-	[--usrpserial USRP_SERIAL] USRP Serial number for UHD (optional)
-	[--usrpname   USRP_NAME]   USRP name according to UHD (optional)
-	[--usrpip     USRP_IP]     USRP IP Address (for networked devices, optional)
-	[--list-usb]               Print list of possible USB USRPs
-	[-p|--print]               Print resolved settings
+	[-d|--domain  DOMAIN_NAME]     Domain Name, default is REDHAWK_DEV
+	[-o|--omni    OMNISERVER]      IP to the OmniServer
+	                               (detected: ${OMNISERVER})
+	[--usrptype   USRP_TYPE]       USRP type according to UHD (b200, etc.,
+	                               optional)
+	[--usrpserial USRP_SERIAL]     USRP Serial number for UHD (optional)
+	[--usrpname   USRP_NAME]       USRP name according to UHD (optional)
+	[--usrpip     USRP_IP_ADDRESS] USRP IP Address (for networked devices,
+	                               optional)
+	[--list-usb]                   Print list of possible USB USRPs
+	[-p|--print]                   Print resolved settings
 
 Examples:
 	Start or stop a node:
@@ -138,7 +141,7 @@ while [[ $# -gt 0 ]]; do
 			shift
 			;;
 		--usrpip)
-			USRP_IP="${2:?Missing USRP_IP Argument}"
+			USRP_IP_ADDRESS="${2:?Missing USRP_IP_ADDRESS Argument}"
 			shift
 			;;
 		--list-usb)
@@ -175,7 +178,7 @@ Resolved Settings:
 	USRP_NAME:    ${USRP_NAME:-Not Specified}
 	USRP_TYPE:    ${USRP_TYPE:-Not Specified}
 	USRP_SERIAL:  ${USRP_SERIAL:-Not Specified}
-	USRP_IP:      ${USRP_IP:-Not Specified}
+	USRP_IP_ADDRESS:      ${USRP_IP_ADDRESS:-Not Specified}
 	OMNISERVER:   ${OMNISERVER:-Not Specified}
 EOF
 	exit 0
@@ -202,7 +205,7 @@ if [[ $COMMAND == "start" ]]; then
 	fi
 
 	# Verify at least one of the usrp options has been set
-	if [ -z ${USRP_NAME+x} ] && [ -z ${USRP_TYPE+x} ] && [ -z ${USRP_SERIAL+x} ] && [ -z ${USRP_IP+x} ]; then
+	if [ -z ${USRP_NAME+x} ] && [ -z ${USRP_TYPE+x} ] && [ -z ${USRP_SERIAL+x} ] && [ -z ${USRP_IP_ADDRESS+x} ]; then
 		usage
 		echo ERROR: At least one of the --usrp... options must be specified to find the device
 		exit 1
@@ -222,7 +225,7 @@ if [[ $COMMAND == "start" ]]; then
 			;&
 		*)
 			# Assuming the rest are networkable
-			if [ -z ${USRP_IP+x} ]; then
+			if [ -z ${USRP_IP_ADDRESS+x} ]; then
 				echo ERROR: Networked USRPs must be specified with an IP address
 				exit 1
 			fi
@@ -249,7 +252,7 @@ if [[ $COMMAND == "start" ]]; then
 			    -e OMNISERVICEIP=${OMNISERVER} \
 			    -e USRP_NAME=${USRP_NAME} \
 			    -e USRP_TYPE=${USRP_TYPE:-} \
-			    -e USRP_IP=${USRP_IP:-} \
+			    -e USRP_IP_ADDRESS=${USRP_IP_ADDRESS:-} \
 			    -e USRP_SERIAL=${USRP_SERIAL:-} \
 			    ${USB_DEVICE} \
 			    --net host \
