@@ -63,6 +63,7 @@ Usage: $0 create|delete options...
                                     (detected: ${OMNISERVER})
     [-n|--name]                     Container name to use, default is:
                     IDE_${SDRROOT_VOLUME}_${WORKSPACE}
+    [   --args   "ARGS"]            Additional arguments passed to 'docker run'
     [-p|--print]                    Just print resolved settings
     [-h|--help]                     This message.
 
@@ -135,6 +136,10 @@ while [[ $# -gt 0 ]]; do
             CONTAINER_NAME="${2:?Missing CONTAINER_NAME Argument}"
             shift
             ;;
+        --args)
+            ARGUMENTS="${2:?Missing ARGUMENTS argument}"
+            shift
+            ;;
         -h|--help)
             usage
             exit 0
@@ -167,6 +172,8 @@ if [ -z ${COMMAND+x} ]; then
     echo ERROR: Specify a command \(create, delete, run\)
     exit 1
 fi
+
+ARGUMENTS=${ARGUMENTS:-""}
 
 # Source the volume labels
 source $DIR/volume-labels.sh
@@ -293,6 +300,7 @@ case ${COMMAND} in
                     -v $X11_UNIX:$X11_UNIX \
                     -P \
                     --name ${CONTAINER_NAME} \
+                    ${ARGUMENTS} \
                     ${IMAGE_NAME} &> /dev/null
                 ;;
             *)

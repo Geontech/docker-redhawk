@@ -50,6 +50,7 @@ Usage: $0 start|stop [DOMAIN_NAME]
 	[-s|--sdrroot SDRROOT_VOLUME] SDRROOT Volume Name
 	[-o|--omni    OMNISERVER]     IP to the OmniServer 
 	                              (detected: ${OMNISERVER})
+	[   --args   "ARGS"]          Additional arguments passed to 'docker run'
 	[-p|--print]                  Just print resolved settings
 
 Examples:
@@ -93,6 +94,10 @@ while [[ $# -gt 0 ]]; do
 			OMNISERVER="${2:?Missing OMNISERVER Argument}"
 			shift
 			;;
+		--args)
+			ARGUMENTS="${2:?Missing ARGUMENTS argument}"
+			shift
+			;;
 		-h|--help)
 			usage
 			exit 0
@@ -133,6 +138,7 @@ fi
 SDRROOT_VOLUME=${SDRROOT_VOLUME:-$(uuidgen)}
 SDRROOT_CMD="$($DIR/sdrroot-cmd.sh $SDRROOT_VOLUME)"
 
+ARGUMENTS=${ARGUMENTS:-""}
 
 # Check if the image is installed yet, if not, build it.
 $DIR/image-exists.sh ${IMAGE_NAME}
@@ -179,6 +185,7 @@ if [[ $COMMAND == "start" ]]; then
 				${NETWORK_ARGS} \
 				${SDRROOT_CMD} \
 				--name ${CONTAINER_NAME} \
+				${ARGUMENTS} \
 				${IMAGE_NAME} &> /dev/null
 
 			# Verify it is running

@@ -53,6 +53,7 @@ Usage: $0 start|stop NODE_NAME
 	[--rtlproduct RTL_PRODUCT] RTL Product Name (optional)
 	[--rtlserial  RTL_SERIAL]  RTL Serial number (optional)
 	[--rtlindex   RTL_INDEX]   RTL Device Index (optional)
+	[   --args   "ARGS"]       Additional arguments passed to 'docker run'
 	[-p|--print]               Print resolved settings
 
 Examples:
@@ -123,6 +124,10 @@ while [[ $# -gt 0 ]]; do
 			RTL_INDEX="${2:?Missing RTL_INDEX Argument}"
 			shift
 			;;
+		--args)
+			ARGUMENTS="${2:?Missing ARGUMENTS argument}"
+			shift
+			;;
 		-p|--print)
 			JUST_PRINT=YES
 			;;
@@ -143,6 +148,7 @@ fi
 
 # Enforce defaults
 DOMAIN_NAME=${DOMAIN_NAME:-REDHAWK_DEV}
+ARGUMENTS=${ARGUMENTS:-""}
 
 if ! [ -z ${JUST_PRINT+x} ]; then
 	cat <<EOF
@@ -207,6 +213,7 @@ if [[ $COMMAND == "start" ]]; then
 			    --privileged \
 			    --net host \
 				--name ${CONTAINER_NAME} \
+				${ARGUMENTS} \
 				${IMAGE_NAME} &> /dev/null
 
 			# Verify it is running

@@ -56,6 +56,7 @@ Usage: $0 start|stop NODE_NAME
 	[--usrpip     USRP_IP_ADDRESS] USRP IP Address (for networked devices,
 	                               optional)
 	[--list-usb]                   Print list of possible USB USRPs
+	[   --args   "ARGS"]           Additional arguments passed to 'docker run'
 	[-p|--print]                   Print resolved settings
 
 Examples:
@@ -148,6 +149,10 @@ while [[ $# -gt 0 ]]; do
 			list_usb_devices
 			exit 0
 			;;
+		--args)
+			ARGUMENTS="${2:?Missing ARGUMENTS argument}"
+			shift
+			;;
 		-p|--print)
 			JUST_PRINT=YES
 			;;
@@ -168,6 +173,7 @@ fi
 
 # Enforce defaults
 DOMAIN_NAME=${DOMAIN_NAME:-REDHAWK_DEV}
+ARGUMENTS=${ARGUMENTS:-""}
 
 if ! [ -z ${JUST_PRINT+x} ]; then
 	cat <<EOF
@@ -257,6 +263,7 @@ if [[ $COMMAND == "start" ]]; then
 			    ${USB_DEVICE} \
 			    --net host \
 				--name ${CONTAINER_NAME} \
+				${ARGUMENTS} \
 				${IMAGE_NAME} &> /dev/null
 
 			# Verify it is running

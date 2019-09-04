@@ -36,8 +36,9 @@ IMAGE_NAME=$(image_name "${filename%.*}")
 function usage () {
 	cat <<EOF
 
-Usage: $0 start|stop 
+Usage: $0 start|stop [options]
 	start|stop       Start or stop the omniserver
+	--args "ARGS"    Additional arguments passed to 'docker run'
 
 Examples:
 	Status of omniserver:
@@ -83,6 +84,10 @@ while [[ $# -gt 0 ]]; do
 			fi
 			COMMAND="$1"
 			;;
+		--args)
+			ARGUMENTS="${2:?Missing ARGUMENTS argument}"
+			shift
+			;;
 		-h|--help)
 			usage
 			exit 0
@@ -102,6 +107,7 @@ if [ -z ${COMMAND+x} ]; then
 	exit 1
 fi
 
+ARGUMENTS=${ARGUMENTS:-""}
 
 # Check if the image is installed yet, if not, build it.
 $DIR/image-exists.sh ${IMAGE_NAME}
@@ -129,7 +135,9 @@ if [[ $COMMAND == "start" ]]; then
 
 		docker run --rm -d \
 			${NETWORK_ARGS} \
-			--name ${CONTAINER_NAME} ${IMAGE_NAME} &> /dev/null
+			${ARGUMENTS} \
+			--name ${CONTAINER_NAME} \
+			${IMAGE_NAME} &> /dev/null
 		
 		# Verify it's running
 		$DIR/container-running.sh ${CONTAINER_NAME}

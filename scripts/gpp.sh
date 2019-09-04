@@ -50,6 +50,7 @@ Usage: $0 start|stop NODE_NAME (options)
 	[-g|--gpp    GPP_NAME]    GPP Device name, default is GPP_[UUID]
 	[-d|--domain DOMAIN_NAME] Domain Name, default is REDHAWK_DEV
 	[-o|--omni   OMNISERVER]  IP to the OmniServer (detected: ${OMNISERVER})
+	[   --args   "ARGS"]      Additional arguments passed to 'docker run'
 	[-p|--print]              Just print resolved settings
 
 Examples:
@@ -102,6 +103,10 @@ while [[ $# -gt 0 ]]; do
 			OMNISERVER="${2:?Missing OMNISERVER Argument}"
 			shift
 			;;
+		--args)
+			ARGUMENTS="${2:?Missing ARGUMENTS argument}"
+			shift
+			;;
 		-h|--help)
 			usage
 			exit 0
@@ -127,6 +132,7 @@ fi
 # Enforce defaults
 GPP_NAME=${GPP_NAME:-GPP_$(uuidgen)}
 DOMAIN_NAME=${DOMAIN_NAME:-REDHAWK_DEV}
+ARGUMENTS=${ARGUMENTS:-""}
 
 if ! [ -z ${JUST_PRINT+x} ]; then
 	cat <<EOF
@@ -185,6 +191,7 @@ if [[ $COMMAND == "start" ]]; then
 				-e DOMAINNAME=${DOMAIN_NAME} \
 				-e OMNISERVICEIP=${OMNISERVER} \
 				${NETWORK_ARGS} \
+				${ARGUMENTS} \
 				--name ${CONTAINER_NAME} \
 				${IMAGE_NAME} &> /dev/null
 
