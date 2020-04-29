@@ -24,81 +24,10 @@ LABEL name="REDHAWK SDR USRP_UHD Device" \
 # Compile UHD from source
 RUN yum install -y \
         redhawk-sdrroot-dev-mgr \
-        autoconf \
-        automake \
-        cmake \
-        doxygen \
-        python-pip \
-        git \
-        g++ \
-        boost-devel \
-        libusb1-devel \
-        gpsd-devel \
-        python-mako \
         python-requests \
-        python-docutils \
-        gcc \
-        gcc-c++ \
-        e2fsprogs-devel \
-        rpm-build && \
-    \
-    git clone git://github.com/EttusResearch/uhd.git && \
-    mkdir -p uhd/host/build && \
-    pushd uhd/host/build && \
-    git checkout release_003_010_001_001 && \
-    cmake ../ && \
-    make && \
-    make test && \
-    make install && \
-    ldconfig && \
-    cpack ../ && \
-    \
-    yum autoremove -y \
-        autoconf \
-        automake \
-        cmake \
-        doxygen \
-        python-pip \
-        git \
-        g++ \
-        boost-devel \
-        libusb1-devel \
-        gpsd-devel \
-        gcc \
-        gcc-c++ \
-        e2fsprogs-devel \
-        rpm-build && \
-    \
-    yum localinstall -y uhd*.rpm && \
+        rh.USRP_UHD && \
     yum clean all -y && \
-    popd && \
-    rm -rf uhd && \
-    ldconfig
-
-# Compile USRP_UHD from source
-RUN yum install -y \
-        redhawk-devel \
-        autoconf \
-        automake \
-        git && \
-    source /etc/profile.d/redhawk.sh && \
-    source /etc/profile.d/redhawk-sdrroot.sh && \
-    git clone git://github.com/RedhawkSDR/USRP_UHD.git && \
-    pushd USRP_UHD && \
-    git checkout tags/5.0.0 && \
-    ./build.sh && \
-    ./build.sh install && \
-    popd && \
-    rm -rf USRP_UHD && \
-    \
-    yum autoremove -y \
-        redhawk-devel \
-        autoconf \
-        automake && \
-    yum install -y patch && \
-    yum clean all -y && \
-    /usr/local/lib64/uhd/utils/uhd_images_downloader.py
-
+    /usr/bin/uhd_images_downloader
 
 ENV DOMAINNAME      ""
 ENV NODENAME        ""
