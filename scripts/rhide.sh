@@ -289,6 +289,16 @@ case ${COMMAND} in
                     X11_DISPLAY=${IP_GUESS}:0
                 fi
 
+                if [ "$(uname -r | cut -d'.' -f5)" == "amzn2" ]; then
+                    IP=$(ifconfig eth1 | grep inet | awk '$1=="inet" {print $2}')
+                    if ! [ $(command -v xhost) ]; then
+                        echo xhost is not available; unable to start.
+                        exit 1
+                    fi
+                    xhost +${IP}
+                    X11_DISPLAY=:100
+                fi
+
                 # Prepare to run the container
                 X11_UNIX=/tmp/.X11-unix
                 docker run --rm -d \
