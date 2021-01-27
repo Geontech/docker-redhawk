@@ -40,12 +40,12 @@ RUN yum install -y \
         gcc \
         python-dev \
         curl \
-        python-virtualenv && \
+        python-virtualenv \
+        pip && \
     yum clean all -y
 
-# Install and update pip
-RUN curl https://bootstrap.pypa.io/get-pip.py | python && \
-    pip install -U pip
+# Update pip
+RUN  pip install -U "pip < 21.0"
 
 WORKDIR /opt
 

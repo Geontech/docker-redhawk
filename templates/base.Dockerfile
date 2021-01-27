@@ -19,7 +19,7 @@
 
 FROM centos:7
 
-ENV RH_VERSION=2.1.1
+ENV RH_VERSION=2.2.6
 ENV OMNISERVICEIP=127.0.0.1
 ENV OMNISERVICEPORTS=""
 
@@ -41,12 +41,9 @@ RUN sed -i "s/RH_VERSION/${RH_VERSION}/g" /etc/yum.repos.d/geon-redhawk.repo && 
     wget \
     epel-release \
     http://cbs.centos.org/kojifiles/packages/pyparsing/2.0.3/1.el7/noarch/pyparsing-2.0.3-1.el7.noarch.rpm && \
-    yum -y clean all && \
-    \
-    curl https://bootstrap.pypa.io/get-pip.py | python && \
-    pip install --upgrade pip && \
-    pip install --upgrade supervisor && \
-    mkdir -p \
+    yum install -y python-pip && yum -y clean all && \
+    pip install --upgrade "pip < 21.0" && \
+    pip install --upgrade supervisor &&  mkdir -p \
         /etc/supervisor.d    \
         /etc/supervisor      \
         /var/log/supervisord
