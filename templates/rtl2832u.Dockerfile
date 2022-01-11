@@ -32,7 +32,7 @@ RUN yum install -y \
     \
     source /etc/profile.d/redhawk.sh && \
     source /etc/profile.d/redhawk-sdrroot.sh && \
-    git clone git://github.com/RedhawkSDR/RTL2832U.git && \
+    git clone https://github.com/RedhawkSDR/RTL2832U.git && \
     pushd RTL2832U && \
     git checkout tags/2.0.1-5 && \
     ./build.sh && \

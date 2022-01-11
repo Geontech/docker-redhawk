@@ -37,7 +37,7 @@ RUN yum install -y \
 	make && cp -r lib include /usr/local && \
 	popd && rm -rf nmealib nmealib-0.5.3.zip && \
 	\
-	git clone git://github.com/GeonTech/BU353S4.git && \
+	git clone https://github.com/GeonTech/BU353S4.git && \
 	pushd BU353S4 && \
 	source /etc/profile.d/redhawk.sh && \
 	source /etc/profile.d/redhawk-sdrroot.sh && \
