@@ -31,3 +31,6 @@ if ! [ -d $SDRROOT/dev/nodes/${NODENAME} ]; then
 else
 	echo GPP Node already configured
 fi
+
+# Manally change node property to ignore thresholds
+sed -i 's/simpleref refid="ignore" value="False"/simpleref refid="ignore" value="True"/g' ${SDRROOT}/dev/nodes/${NODENAME}/DeviceManager.dcd.xml
